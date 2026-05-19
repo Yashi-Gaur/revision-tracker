@@ -1,0 +1,2748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Yashi Gaur's SWE Revision Tracker — DSA, Frontend, Backend, System Design">
+<title>Yashi's SWE Revision Tracker</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+<style>
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.55;
+  min-height: 100vh;
+  transition: background 0.3s, color 0.3s;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   THEME TOKENS
+   ============================================================ */
+:root {
+  --bg: #f8fafc;
+  --bg-elevated: #ffffff;
+  --bg-subtle: #f1f5f9;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --text-subtle: #94a3b8;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+  --accent-subtle: #eef2ff;
+  --success: #10b981;
+  --success-subtle: #d1fae5;
+  --warning: #f59e0b;
+  --warning-subtle: #fef3c7;
+  --danger: #ef4444;
+  --danger-subtle: #fee2e2;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 8px 32px rgba(15, 23, 42, 0.08);
+
+  /* Section accent colors */
+  --dsa: #6366f1;       --dsa-bg: #eef2ff;
+  --frontend: #ec4899;  --frontend-bg: #fce7f3;
+  --backend: #10b981;   --backend-bg: #d1fae5;
+  --lld: #14b8a6;       --lld-bg: #ccfbf1;
+  --systemDesign: #f59e0b; --systemDesign-bg: #fef3c7;
+}
+[data-theme="dark"] {
+  --bg: #0a0f1c;
+  --bg-elevated: #131a2c;
+  --bg-subtle: #1e2638;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --text-subtle: #64748b;
+  --border: #1e2638;
+  --border-strong: #334155;
+  --accent: #818cf8;
+  --accent-hover: #a5b4fc;
+  --accent-subtle: #1e1b4b;
+  --success-subtle: #064e3b;
+  --warning-subtle: #78350f;
+  --danger-subtle: #7f1d1d;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+
+  --dsa-bg: #1e1b4b;
+  --frontend-bg: #500724;
+  --backend-bg: #064e3b;
+  --lld-bg: #134e4a;
+  --systemDesign-bg: #78350f;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 24px;
+  backdrop-filter: blur(12px);
+  background: color-mix(in srgb, var(--bg-elevated) 90%, transparent);
+}
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.header h1 {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.header h1 span.viewing-badge {
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--warning-subtle);
+  color: var(--warning);
+  padding: 4px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elevated);
+  color: var(--text);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+.btn:hover { background: var(--bg-subtle); border-color: var(--accent); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: white; }
+.btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: white; }
+.btn-icon { padding: 8px; aspect-ratio: 1; }
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+/* Overall progress */
+.overall-card {
+  background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%);
+  color: white;
+  padding: 28px;
+  border-radius: 16px;
+  margin-bottom: 32px;
+  box-shadow: var(--shadow-lg);
+}
+.overall-card h2 { font-size: 14px; font-weight: 500; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+.overall-stats { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.overall-stats .big { font-size: 42px; font-weight: 800; letter-spacing: -0.03em; }
+.overall-stats .sub { font-size: 15px; opacity: 0.9; }
+
+.progress-bar {
+  height: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+.progress-bar.thin { height: 6px; }
+.progress-fill {
+  height: 100%;
+  background: white;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+.section-card .progress-fill { background: var(--section-color, var(--accent)); }
+
+/* Sections */
+.section {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  margin-bottom: 24px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.section-header {
+  padding: 20px 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  user-select: none;
+  transition: background 0.15s;
+}
+.section-header:hover { background: var(--bg-subtle); }
+.section-icon {
+  width: 44px; height: 44px;
+  background: var(--section-bg);
+  color: var(--section-color);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.section-title { flex: 1; min-width: 0; }
+.section-title h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; }
+.section-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.section-progress-wrapper { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 200px; }
+.section-progress-text { font-size: 13px; color: var(--text-muted); font-weight: 500; min-width: 80px; text-align: right; }
+.section .chevron { transition: transform 0.25s ease; color: var(--text-muted); }
+.section[data-collapsed="false"] .chevron { transform: rotate(180deg); }
+
+.section-body {
+  padding: 0 24px 24px 24px;
+  border-top: 1px solid var(--border);
+}
+.section[data-collapsed="true"] .section-body { display: none; }
+
+/* Topic cards */
+.topic {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-top: 16px;
+  overflow: hidden;
+}
+.topic-header {
+  padding: 14px 18px;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 12px;
+  user-select: none;
+  transition: background 0.15s;
+}
+.topic-header:hover { background: var(--bg-subtle); }
+.topic-emoji { font-size: 18px; }
+.topic-name {
+  font-size: 15px;
+  font-weight: 600;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.priority-badge {
+  font-size: 10px;
+  padding: 3px 7px;
+  border-radius: 5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.priority-high { background: var(--danger-subtle); color: var(--danger); }
+.priority-medium { background: var(--warning-subtle); color: var(--warning); }
+.priority-low { background: var(--success-subtle); color: var(--success); }
+
+.topic-progress {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.topic-progress .pct {
+  min-width: 36px;
+  text-align: right;
+}
+.topic-mini-bar {
+  width: 60px;
+  height: 6px;
+  background: var(--bg-subtle);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.topic-mini-bar > div {
+  height: 100%;
+  background: var(--section-color);
+  transition: width 0.3s;
+}
+
+.topic-body { padding: 0 18px 14px 18px; display: none; }
+.topic[data-collapsed="false"] .topic-body { display: block; }
+
+/* Subtopic */
+.subtopic {
+  padding: 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-top: 10px;
+}
+.subtopic.done {
+  background: var(--success-subtle);
+  border-color: var(--success);
+}
+.subtopic-head {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.subtopic-checkbox {
+  appearance: none;
+  width: 20px; height: 20px;
+  border: 2px solid var(--border-strong);
+  border-radius: 6px;
+  cursor: pointer;
+  display: grid; place-items: center;
+  background: var(--bg-elevated);
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.subtopic-checkbox:hover { border-color: var(--accent); }
+.subtopic-checkbox:checked {
+  background: var(--success);
+  border-color: var(--success);
+}
+.subtopic-checkbox:checked::after {
+  content: '';
+  width: 6px; height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  margin-top: -2px;
+}
+.subtopic-name {
+  font-size: 14px;
+  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+}
+.subtopic.done .subtopic-name {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.date-controls {
+  display: flex; align-items: center; gap: 8px;
+  flex-wrap: wrap;
+}
+.date-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px;
+  padding: 4px 8px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.date-pill label {
+  color: var(--text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.date-pill input {
+  font-family: inherit;
+  font-size: 12px;
+  padding: 2px 4px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+  color-scheme: light dark;
+  cursor: pointer;
+  min-width: 110px;
+}
+.date-pill input:hover { background: var(--bg-elevated); }
+.date-pill.overdue {
+  background: var(--danger-subtle);
+  border-color: var(--danger);
+}
+.date-pill.overdue input,
+.date-pill.overdue label { color: var(--danger); font-weight: 600; }
+.date-pill.due-soon {
+  background: var(--warning-subtle);
+  border-color: var(--warning);
+}
+.date-pill.due-soon input,
+.date-pill.due-soon label { color: var(--warning); font-weight: 600; }
+.date-pill.done-color {
+  background: var(--success-subtle);
+  border-color: var(--success);
+}
+.date-pill.done-color label { color: var(--success); }
+.btn-clear-date {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 11px;
+  color: var(--text-subtle);
+  padding: 0 2px;
+  line-height: 1;
+}
+.btn-clear-date:hover { color: var(--danger); }
+
+.problem-links {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-top: 6px;
+}
+.problem-link {
+  font-size: 12px;
+  padding: 5px 10px;
+  background: var(--bg-subtle);
+  color: var(--text);
+  text-decoration: none;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.problem-link:hover {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+/* Modal */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 200;
+  padding: 16px;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+  background: var(--bg-elevated);
+  border-radius: 16px;
+  max-width: 540px;
+  width: 100%;
+  padding: 28px;
+  box-shadow: var(--shadow-lg);
+}
+.modal h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+.modal p { color: var(--text-muted); margin-bottom: 16px; font-size: 14px; }
+.modal-share-url {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--bg-subtle);
+  font-family: 'SF Mono', Monaco, monospace;
+  font-size: 12px;
+  color: var(--text);
+  word-break: break-all;
+  resize: none;
+  min-height: 80px;
+  margin-bottom: 12px;
+}
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(120%);
+  background: var(--text);
+  color: var(--bg);
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  z-index: 300;
+  transition: transform 0.3s ease;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* Responsive */
+@media (max-width: 640px) {
+  .container { padding: 16px; }
+  .header { padding: 12px 16px; }
+  .header h1 { font-size: 16px; }
+  .btn { padding: 7px 10px; font-size: 12px; }
+  .overall-card { padding: 20px; }
+  .overall-stats .big { font-size: 32px; }
+  .section-header { padding: 16px; }
+  .section-icon { width: 36px; height: 36px; font-size: 18px; }
+  .section-title h2 { font-size: 18px; }
+  .section-body { padding: 0 16px 16px 16px; }
+  .topic-mini-bar { display: none; }
+  .topic-progress .pct { display: none; }
+  .subtopic-head { flex-direction: column; align-items: flex-start; }
+  .revision-date { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <h1>📚 Yashi's Revision Tracker <span class="viewing-badge" id="viewingBadge" style="display:none">Viewing Snapshot</span></h1>
+    <div class="header-actions">
+      <button class="btn btn-icon" id="themeBtn" title="Toggle theme">🌙</button>
+      <button class="btn" id="shareBtn" title="Share progress with friends">🔗 Share</button>
+      <button class="btn" id="resetBtn" title="Reset all progress">↺ Reset</button>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <div class="overall-card">
+    <h2>Overall Progress</h2>
+    <div class="overall-stats">
+      <div class="big" id="overallPct">0%</div>
+      <div class="sub" id="overallText">0 of 0 subtopics complete</div>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="overallBar" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div id="sections"></div>
+</main>
+
+<div class="modal-backdrop" id="shareModal">
+  <div class="modal">
+    <h3>🔗 Share your progress</h3>
+    <p>Copy this URL and send it to your friends. They'll see your current progress as a read-only snapshot.</p>
+    <textarea class="modal-share-url" id="shareUrl" readonly></textarea>
+    <div class="modal-actions">
+      <button class="btn" id="closeShareModal">Close</button>
+      <button class="btn btn-primary" id="copyShareUrl">Copy URL</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================================
+// CURRICULUM DATA (embedded)
+// ============================================================================
+const CURRICULUM = {
+  dsa: {
+    icon: "🧮",
+    label: "DSA",
+    color: "indigo",
+    topics: [
+      // ────────────────────────────────────────────────────────
+      // 1. DYNAMIC PROGRAMMING (start here, hardest, most weighted)
+      // ────────────────────────────────────────────────────────
+      {
+        name: "Dynamic Programming",
+        emoji: "🧩",
+        priority: "high",
+        subtopics: [
+          {
+            name: "1D DP — Climbing/Robber/Coin patterns",
+            problems: [
+              { name: "Climbing Stairs", url: "https://leetcode.com/problems/climbing-stairs/" },
+              { name: "House Robber", url: "https://leetcode.com/problems/house-robber/" },
+              { name: "Coin Change", url: "https://leetcode.com/problems/coin-change/" },
+              { name: "Longest Increasing Subsequence", url: "https://leetcode.com/problems/longest-increasing-subsequence/" },
+            ],
+          },
+          {
+            name: "2D DP — Grid & Pathing",
+            problems: [
+              { name: "Unique Paths", url: "https://leetcode.com/problems/unique-paths/" },
+              { name: "Minimum Path Sum", url: "https://leetcode.com/problems/minimum-path-sum/" },
+              { name: "Longest Common Subsequence", url: "https://leetcode.com/problems/longest-common-subsequence/" },
+              { name: "Edit Distance", url: "https://leetcode.com/problems/edit-distance/" },
+            ],
+          },
+          {
+            name: "Knapsack patterns (0/1, Unbounded)",
+            problems: [
+              { name: "Partition Equal Subset Sum", url: "https://leetcode.com/problems/partition-equal-subset-sum/" },
+              { name: "Target Sum", url: "https://leetcode.com/problems/target-sum/" },
+              { name: "Coin Change II (unbounded)", url: "https://leetcode.com/problems/coin-change-ii/" },
+              { name: "Ones and Zeroes", url: "https://leetcode.com/problems/ones-and-zeroes/" },
+            ],
+          },
+          {
+            name: "DP on Strings",
+            problems: [
+              { name: "Longest Palindromic Substring", url: "https://leetcode.com/problems/longest-palindromic-substring/" },
+              { name: "Palindrome Partitioning II", url: "https://leetcode.com/problems/palindrome-partitioning-ii/" },
+              { name: "Word Break", url: "https://leetcode.com/problems/word-break/" },
+              { name: "Distinct Subsequences", url: "https://leetcode.com/problems/distinct-subsequences/" },
+            ],
+          },
+          {
+            name: "DP on Trees",
+            problems: [
+              { name: "House Robber III", url: "https://leetcode.com/problems/house-robber-iii/" },
+              { name: "Binary Tree Maximum Path Sum", url: "https://leetcode.com/problems/binary-tree-maximum-path-sum/" },
+              { name: "Diameter of Binary Tree", url: "https://leetcode.com/problems/diameter-of-binary-tree/" },
+            ],
+          },
+          {
+            name: "Bitmask / State Compression DP",
+            problems: [
+              { name: "Partition to K Equal Sum Subsets", url: "https://leetcode.com/problems/partition-to-k-equal-sum-subsets/" },
+              { name: "Shortest Path Visiting All Nodes", url: "https://leetcode.com/problems/shortest-path-visiting-all-nodes/" },
+              { name: "Travelling Salesman (GfG)", url: "https://www.geeksforgeeks.org/travelling-salesman-problem-using-dynamic-programming/" },
+            ],
+          },
+          {
+            name: "Interval DP",
+            problems: [
+              { name: "Burst Balloons", url: "https://leetcode.com/problems/burst-balloons/" },
+              { name: "Matrix Chain Multiplication (GfG)", url: "https://www.geeksforgeeks.org/matrix-chain-multiplication-dp-8/" },
+              { name: "Minimum Cost to Cut a Stick", url: "https://leetcode.com/problems/minimum-cost-to-cut-a-stick/" },
+            ],
+          },
+          {
+            name: "Stocks & Game DP",
+            problems: [
+              { name: "Best Time to Buy and Sell Stock III", url: "https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iii/" },
+              { name: "Best Time to Buy and Sell Stock IV", url: "https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iv/" },
+              { name: "Stone Game", url: "https://leetcode.com/problems/stone-game/" },
+            ],
+          },
+        ],
+      },
+      // ────────────────────────────────────────────────────────
+      // 2. TREES
+      // ────────────────────────────────────────────────────────
+      {
+        name: "Trees",
+        emoji: "🌳",
+        priority: "high",
+        subtopics: [
+          {
+            name: "Traversals — Inorder, Preorder, Postorder, Level",
+            problems: [
+              { name: "Binary Tree Inorder Traversal", url: "https://leetcode.com/problems/binary-tree-inorder-traversal/" },
+              { name: "Binary Tree Level Order Traversal", url: "https://leetcode.com/problems/binary-tree-level-order-traversal/" },
+              { name: "Binary Tree Zigzag Level Order", url: "https://leetcode.com/problems/binary-tree-zigzag-level-order-traversal/" },
+              { name: "Construct Tree from Pre+Inorder", url: "https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/" },
+            ],
+          },
+          {
+            name: "BST Operations",
+            problems: [
+              { name: "Validate Binary Search Tree", url: "https://leetcode.com/problems/validate-binary-search-tree/" },
+              { name: "Kth Smallest in BST", url: "https://leetcode.com/problems/kth-smallest-element-in-a-bst/" },
+              { name: "Insert into BST", url: "https://leetcode.com/problems/insert-into-a-binary-search-tree/" },
+              { name: "Delete Node in BST", url: "https://leetcode.com/problems/delete-node-in-a-bst/" },
+            ],
+          },
+          {
+            name: "Lowest Common Ancestor (LCA)",
+            problems: [
+              { name: "LCA of Binary Tree", url: "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/" },
+              { name: "LCA of BST", url: "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/" },
+              { name: "Distance Between Two Nodes (GfG)", url: "https://www.geeksforgeeks.org/find-distance-between-two-nodes-of-a-binary-tree/" },
+            ],
+          },
+          {
+            name: "Path Problems / Diameter",
+            problems: [
+              { name: "Diameter of Binary Tree", url: "https://leetcode.com/problems/diameter-of-binary-tree/" },
+              { name: "Path Sum III", url: "https://leetcode.com/problems/path-sum-iii/" },
+              { name: "Binary Tree Maximum Path Sum", url: "https://leetcode.com/problems/binary-tree-maximum-path-sum/" },
+            ],
+          },
+          {
+            name: "Serialize / Deserialize",
+            problems: [
+              { name: "Serialize and Deserialize Binary Tree", url: "https://leetcode.com/problems/serialize-and-deserialize-binary-tree/" },
+              { name: "Serialize and Deserialize BST", url: "https://leetcode.com/problems/serialize-and-deserialize-bst/" },
+            ],
+          },
+          {
+            name: "Tries (Prefix Trees)",
+            problems: [
+              { name: "Implement Trie", url: "https://leetcode.com/problems/implement-trie-prefix-tree/" },
+              { name: "Word Search II", url: "https://leetcode.com/problems/word-search-ii/" },
+              { name: "Design Add and Search Words", url: "https://leetcode.com/problems/design-add-and-search-words-data-structure/" },
+            ],
+          },
+          {
+            name: "Segment Tree & Fenwick (BIT)",
+            problems: [
+              { name: "Range Sum Query — Mutable (Segment Tree)", url: "https://leetcode.com/problems/range-sum-query-mutable/" },
+              { name: "Count of Smaller Numbers After Self (BIT)", url: "https://leetcode.com/problems/count-of-smaller-numbers-after-self/" },
+              { name: "Reverse Pairs", url: "https://leetcode.com/problems/reverse-pairs/" },
+            ],
+          },
+        ],
+      },
+      // ────────────────────────────────────────────────────────
+      // 3. GRAPHS
+      // ────────────────────────────────────────────────────────
+      {
+        name: "Graphs",
+        emoji: "🕸️",
+        priority: "high",
+        subtopics: [
+          {
+            name: "BFS & DFS — Foundations",
+            problems: [
+              { name: "Number of Islands", url: "https://leetcode.com/problems/number-of-islands/" },
+              { name: "Clone Graph", url: "https://leetcode.com/problems/clone-graph/" },
+              { name: "Rotting Oranges", url: "https://leetcode.com/problems/rotting-oranges/" },
+              { name: "Word Ladder", url: "https://leetcode.com/problems/word-ladder/" },
+            ],
+          },
+          {
+            name: "Topological Sort",
+            problems: [
+              { name: "Course Schedule", url: "https://leetcode.com/problems/course-schedule/" },
+              { name: "Course Schedule II", url: "https://leetcode.com/problems/course-schedule-ii/" },
+              { name: "Alien Dictionary", url: "https://leetcode.com/problems/alien-dictionary/" },
+            ],
+          },
+          {
+            name: "Shortest Path — Dijkstra",
+            problems: [
+              { name: "Network Delay Time", url: "https://leetcode.com/problems/network-delay-time/" },
+              { name: "Cheapest Flights Within K Stops", url: "https://leetcode.com/problems/cheapest-flights-within-k-stops/" },
+              { name: "Path With Minimum Effort", url: "https://leetcode.com/problems/path-with-minimum-effort/" },
+            ],
+          },
+          {
+            name: "Bellman-Ford & Floyd-Warshall",
+            problems: [
+              { name: "Bellman-Ford (GfG)", url: "https://www.geeksforgeeks.org/bellman-ford-algorithm-dp-23/" },
+              { name: "Floyd-Warshall (GfG)", url: "https://www.geeksforgeeks.org/floyd-warshall-algorithm-dp-16/" },
+              { name: "Find the City With the Smallest Number of Neighbors", url: "https://leetcode.com/problems/find-the-city-with-the-smallest-number-of-neighbors-at-a-threshold-distance/" },
+            ],
+          },
+          {
+            name: "Minimum Spanning Tree — Kruskal / Prim",
+            problems: [
+              { name: "Min Cost to Connect All Points", url: "https://leetcode.com/problems/min-cost-to-connect-all-points/" },
+              { name: "Connecting Cities With Minimum Cost", url: "https://leetcode.com/problems/connecting-cities-with-minimum-cost/" },
+              { name: "Kruskal (GfG)", url: "https://www.geeksforgeeks.org/kruskals-minimum-spanning-tree-algorithm-greedy-algo-2/" },
+            ],
+          },
+          {
+            name: "Bipartite & Cycle Detection",
+            problems: [
+              { name: "Is Graph Bipartite?", url: "https://leetcode.com/problems/is-graph-bipartite/" },
+              { name: "Possible Bipartition", url: "https://leetcode.com/problems/possible-bipartition/" },
+              { name: "Detect Cycle in Directed Graph (GfG)", url: "https://www.geeksforgeeks.org/detect-cycle-in-a-graph/" },
+            ],
+          },
+          {
+            name: "Strongly Connected Components",
+            problems: [
+              { name: "Tarjan's Algorithm (GfG)", url: "https://www.geeksforgeeks.org/tarjan-algorithm-find-strongly-connected-components/" },
+              { name: "Critical Connections in a Network", url: "https://leetcode.com/problems/critical-connections-in-a-network/" },
+              { name: "Kosaraju (GfG)", url: "https://www.geeksforgeeks.org/strongly-connected-components/" },
+            ],
+          },
+        ],
+      },
+      // ────────────────────────────────────────────────────────
+      // 4. UNION FIND (DSU)
+      // ────────────────────────────────────────────────────────
+      {
+        name: "Union Find (DSU)",
+        emoji: "🔗",
+        priority: "high",
+        subtopics: [
+          {
+            name: "Union by Rank + Path Compression",
+            problems: [
+              { name: "Number of Provinces", url: "https://leetcode.com/problems/number-of-provinces/" },
+              { name: "Friend Circles (GfG)", url: "https://www.geeksforgeeks.org/friends-pairing-problem/" },
+              { name: "DSU Tutorial (CP-Algorithms)", url: "https://cp-algorithms.com/data_structures/disjoint_set_union.html" },
+            ],
+          },
+          {
+            name: "DSU Applications",
+            problems: [
+              { name: "Redundant Connection", url: "https://leetcode.com/problems/redundant-connection/" },
+              { name: "Accounts Merge", url: "https://leetcode.com/problems/accounts-merge/" },
+              { name: "Number of Islands II", url: "https://leetcode.com/problems/number-of-islands-ii/" },
+              { name: "Most Stones Removed", url: "https://leetcode.com/problems/most-stones-removed-with-same-row-or-column/" },
+            ],
+          },
+        ],
+      },
+      // ────────────────────────────────────────────────────────
+      // 5. HEAPS
+      // ────────────────────────────────────────────────────────
+      {
+        name: "Heaps & Priority Queue",
+        emoji: "⛰️",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "Top K Patterns",
+            problems: [
+              { name: "Kth Largest Element in an Array", url: "https://leetcode.com/problems/kth-largest-element-in-an-array/" },
+              { name: "Top K Frequent Elements", url: "https://leetcode.com/problems/top-k-frequent-elements/" },
+              { name: "K Closest Points to Origin", url: "https://leetcode.com/problems/k-closest-points-to-origin/" },
+            ],
+          },
+          {
+            name: "Merge K Sorted",
+            problems: [
+              { name: "Merge K Sorted Lists", url: "https://leetcode.com/problems/merge-k-sorted-lists/" },
+              { name: "Smallest Range Covering K Lists", url: "https://leetcode.com/problems/smallest-range-covering-elements-from-k-lists/" },
+              { name: "Find K Pairs with Smallest Sums", url: "https://leetcode.com/problems/find-k-pairs-with-smallest-sums/" },
+            ],
+          },
+          {
+            name: "Two Heaps — Median tracking",
+            problems: [
+              { name: "Find Median from Data Stream", url: "https://leetcode.com/problems/find-median-from-data-stream/" },
+              { name: "Sliding Window Median", url: "https://leetcode.com/problems/sliding-window-median/" },
+              { name: "IPO", url: "https://leetcode.com/problems/ipo/" },
+            ],
+          },
+        ],
+      },
+      // ────────────────────────────────────────────────────────
+      // 6. BINARY SEARCH
+      // ────────────────────────────────────────────────────────
+      {
+        name: "Binary Search",
+        emoji: "🔍",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "Classic Binary Search",
+            problems: [
+              { name: "Binary Search", url: "https://leetcode.com/problems/binary-search/" },
+              { name: "First and Last Position", url: "https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/" },
+              { name: "Search Insert Position", url: "https://leetcode.com/problems/search-insert-position/" },
+            ],
+          },
+          {
+            name: "Binary Search on Answer",
+            problems: [
+              { name: "Koko Eating Bananas", url: "https://leetcode.com/problems/koko-eating-bananas/" },
+              { name: "Capacity to Ship Packages", url: "https://leetcode.com/problems/capacity-to-ship-packages-within-d-days/" },
+              { name: "Split Array Largest Sum", url: "https://leetcode.com/problems/split-array-largest-sum/" },
+            ],
+          },
+          {
+            name: "Rotated / 2D Arrays",
+            problems: [
+              { name: "Search in Rotated Sorted Array", url: "https://leetcode.com/problems/search-in-rotated-sorted-array/" },
+              { name: "Find Minimum in Rotated Sorted Array", url: "https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/" },
+              { name: "Median of Two Sorted Arrays", url: "https://leetcode.com/problems/median-of-two-sorted-arrays/" },
+            ],
+          },
+        ],
+      },
+      // ────────────────────────────────────────────────────────
+      // 7. LINKED LISTS
+      // ────────────────────────────────────────────────────────
+      {
+        name: "Linked Lists",
+        emoji: "🔗",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "Reverse & Manipulate",
+            problems: [
+              { name: "Reverse Linked List", url: "https://leetcode.com/problems/reverse-linked-list/" },
+              { name: "Reverse Nodes in k-Group", url: "https://leetcode.com/problems/reverse-nodes-in-k-group/" },
+              { name: "Swap Nodes in Pairs", url: "https://leetcode.com/problems/swap-nodes-in-pairs/" },
+            ],
+          },
+          {
+            name: "Fast & Slow Pointers",
+            problems: [
+              { name: "Linked List Cycle", url: "https://leetcode.com/problems/linked-list-cycle/" },
+              { name: "Linked List Cycle II", url: "https://leetcode.com/problems/linked-list-cycle-ii/" },
+              { name: "Middle of the Linked List", url: "https://leetcode.com/problems/middle-of-the-linked-list/" },
+            ],
+          },
+          {
+            name: "Merge / Sort / Special",
+            problems: [
+              { name: "Merge Two Sorted Lists", url: "https://leetcode.com/problems/merge-two-sorted-lists/" },
+              { name: "Copy List with Random Pointer", url: "https://leetcode.com/problems/copy-list-with-random-pointer/" },
+              { name: "LRU Cache", url: "https://leetcode.com/problems/lru-cache/" },
+            ],
+          },
+        ],
+      },
+      // ────────────────────────────────────────────────────────
+      // 8. STACKS
+      // ────────────────────────────────────────────────────────
+      {
+        name: "Stacks",
+        emoji: "📚",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "Basic Stack patterns",
+            problems: [
+              { name: "Valid Parentheses", url: "https://leetcode.com/problems/valid-parentheses/" },
+              { name: "Min Stack", url: "https://leetcode.com/problems/min-stack/" },
+              { name: "Evaluate Reverse Polish Notation", url: "https://leetcode.com/problems/evaluate-reverse-polish-notation/" },
+            ],
+          },
+          {
+            name: "Monotonic Stack",
+            problems: [
+              { name: "Daily Temperatures", url: "https://leetcode.com/problems/daily-temperatures/" },
+              { name: "Next Greater Element II", url: "https://leetcode.com/problems/next-greater-element-ii/" },
+              { name: "Largest Rectangle in Histogram", url: "https://leetcode.com/problems/largest-rectangle-in-histogram/" },
+              { name: "Trapping Rain Water", url: "https://leetcode.com/problems/trapping-rain-water/" },
+            ],
+          },
+        ],
+      },
+      // ────────────────────────────────────────────────────────
+      // 9. QUEUES & DEQUE
+      // ────────────────────────────────────────────────────────
+      {
+        name: "Queues & Deque",
+        emoji: "🚶",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "Sliding Window with Deque",
+            problems: [
+              { name: "Sliding Window Maximum", url: "https://leetcode.com/problems/sliding-window-maximum/" },
+              { name: "Shortest Subarray with Sum at Least K", url: "https://leetcode.com/problems/shortest-subarray-with-sum-at-least-k/" },
+              { name: "Open the Lock", url: "https://leetcode.com/problems/open-the-lock/" },
+            ],
+          },
+        ],
+      },
+      // ────────────────────────────────────────────────────────
+      // 10. SLIDING WINDOW
+      // ────────────────────────────────────────────────────────
+      {
+        name: "Sliding Window",
+        emoji: "🪟",
+        priority: "high",
+        subtopics: [
+          {
+            name: "Fixed Window",
+            problems: [
+              { name: "Maximum Average Subarray I", url: "https://leetcode.com/problems/maximum-average-subarray-i/" },
+              { name: "Permutation in String", url: "https://leetcode.com/problems/permutation-in-string/" },
+              { name: "Find All Anagrams in a String", url: "https://leetcode.com/problems/find-all-anagrams-in-a-string/" },
+            ],
+          },
+          {
+            name: "Variable Window",
+            problems: [
+              { name: "Longest Substring Without Repeating", url: "https://leetcode.com/problems/longest-substring-without-repeating-characters/" },
+              { name: "Minimum Window Substring", url: "https://leetcode.com/problems/minimum-window-substring/" },
+              { name: "Longest Repeating Character Replacement", url: "https://leetcode.com/problems/longest-repeating-character-replacement/" },
+            ],
+          },
+        ],
+      },
+      // ────────────────────────────────────────────────────────
+      // 11. TWO POINTERS
+      // ────────────────────────────────────────────────────────
+      {
+        name: "Two Pointers",
+        emoji: "👉",
+        priority: "high",
+        subtopics: [
+          {
+            name: "Sum Patterns",
+            problems: [
+              { name: "Two Sum II — Sorted", url: "https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/" },
+              { name: "3Sum", url: "https://leetcode.com/problems/3sum/" },
+              { name: "3Sum Closest", url: "https://leetcode.com/problems/3sum-closest/" },
+              { name: "4Sum", url: "https://leetcode.com/problems/4sum/" },
+            ],
+          },
+          {
+            name: "Container / Trapping",
+            problems: [
+              { name: "Container With Most Water", url: "https://leetcode.com/problems/container-with-most-water/" },
+              { name: "Sort Colors", url: "https://leetcode.com/problems/sort-colors/" },
+              { name: "Remove Duplicates from Sorted Array", url: "https://leetcode.com/problems/remove-duplicates-from-sorted-array/" },
+            ],
+          },
+        ],
+      },
+      // ────────────────────────────────────────────────────────
+      // 12. ARRAYS & STRINGS
+      // ────────────────────────────────────────────────────────
+      {
+        name: "Arrays & Strings",
+        emoji: "🔤",
+        priority: "high",
+        subtopics: [
+          {
+            name: "Prefix Sum & Kadane",
+            problems: [
+              { name: "Maximum Subarray (Kadane)", url: "https://leetcode.com/problems/maximum-subarray/" },
+              { name: "Subarray Sum Equals K", url: "https://leetcode.com/problems/subarray-sum-equals-k/" },
+              { name: "Continuous Subarray Sum", url: "https://leetcode.com/problems/continuous-subarray-sum/" },
+              { name: "Product of Array Except Self", url: "https://leetcode.com/problems/product-of-array-except-self/" },
+            ],
+          },
+          {
+            name: "String Patterns",
+            problems: [
+              { name: "Group Anagrams", url: "https://leetcode.com/problems/group-anagrams/" },
+              { name: "Longest Palindromic Substring", url: "https://leetcode.com/problems/longest-palindromic-substring/" },
+              { name: "String to Integer (atoi)", url: "https://leetcode.com/problems/string-to-integer-atoi/" },
+            ],
+          },
+        ],
+      },
+      // ────────────────────────────────────────────────────────
+      // 13. GREEDY
+      // ────────────────────────────────────────────────────────
+      {
+        name: "Greedy",
+        emoji: "🎯",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "Interval & Scheduling",
+            problems: [
+              { name: "Jump Game", url: "https://leetcode.com/problems/jump-game/" },
+              { name: "Jump Game II", url: "https://leetcode.com/problems/jump-game-ii/" },
+              { name: "Non-overlapping Intervals", url: "https://leetcode.com/problems/non-overlapping-intervals/" },
+              { name: "Gas Station", url: "https://leetcode.com/problems/gas-station/" },
+            ],
+          },
+          {
+            name: "Classic Greedy",
+            problems: [
+              { name: "Task Scheduler", url: "https://leetcode.com/problems/task-scheduler/" },
+              { name: "Partition Labels", url: "https://leetcode.com/problems/partition-labels/" },
+              { name: "Candy", url: "https://leetcode.com/problems/candy/" },
+            ],
+          },
+        ],
+      },
+      // ────────────────────────────────────────────────────────
+      // 14. BACKTRACKING
+      // ────────────────────────────────────────────────────────
+      {
+        name: "Backtracking",
+        emoji: "🔙",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "Permutations & Combinations",
+            problems: [
+              { name: "Permutations", url: "https://leetcode.com/problems/permutations/" },
+              { name: "Combinations", url: "https://leetcode.com/problems/combinations/" },
+              { name: "Subsets", url: "https://leetcode.com/problems/subsets/" },
+              { name: "Combination Sum", url: "https://leetcode.com/problems/combination-sum/" },
+            ],
+          },
+          {
+            name: "Grid Backtracking",
+            problems: [
+              { name: "Word Search", url: "https://leetcode.com/problems/word-search/" },
+              { name: "N-Queens", url: "https://leetcode.com/problems/n-queens/" },
+              { name: "Sudoku Solver", url: "https://leetcode.com/problems/sudoku-solver/" },
+            ],
+          },
+        ],
+      },
+      // ────────────────────────────────────────────────────────
+      // 15. BIT MANIPULATION
+      // ────────────────────────────────────────────────────────
+      {
+        name: "Bit Manipulation",
+        emoji: "💡",
+        priority: "low",
+        subtopics: [
+          {
+            name: "Classic Bit Tricks",
+            problems: [
+              { name: "Single Number", url: "https://leetcode.com/problems/single-number/" },
+              { name: "Number of 1 Bits", url: "https://leetcode.com/problems/number-of-1-bits/" },
+              { name: "Counting Bits", url: "https://leetcode.com/problems/counting-bits/" },
+              { name: "Reverse Bits", url: "https://leetcode.com/problems/reverse-bits/" },
+            ],
+          },
+          {
+            name: "Advanced Bitmask",
+            problems: [
+              { name: "Sum of Two Integers (no +)", url: "https://leetcode.com/problems/sum-of-two-integers/" },
+              { name: "Maximum XOR of Two Numbers", url: "https://leetcode.com/problems/maximum-xor-of-two-numbers-in-an-array/" },
+              { name: "Bitwise AND of Numbers Range", url: "https://leetcode.com/problems/bitwise-and-of-numbers-range/" },
+            ],
+          },
+        ],
+      },
+      // ────────────────────────────────────────────────────────
+      // 16. MATH & NUMBER THEORY
+      // ────────────────────────────────────────────────────────
+      {
+        name: "Math & Number Theory",
+        emoji: "🔢",
+        priority: "low",
+        subtopics: [
+          {
+            name: "GCD, LCM & Primes",
+            problems: [
+              { name: "Count Primes (Sieve of Eratosthenes)", url: "https://leetcode.com/problems/count-primes/" },
+              { name: "Pow(x, n)", url: "https://leetcode.com/problems/powx-n/" },
+              { name: "Sqrt(x)", url: "https://leetcode.com/problems/sqrtx/" },
+              { name: "Fraction to Recurring Decimal", url: "https://leetcode.com/problems/fraction-to-recurring-decimal/" },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // ════════════════════════════════════════════════════════════
+  // FRONTEND
+  // ════════════════════════════════════════════════════════════
+  frontend: {
+    icon: "🎨",
+    label: "Frontend",
+    color: "pink",
+    topics: [
+      {
+        name: "HTML & Semantic Markup",
+        emoji: "📄",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "Semantic Elements & Document Structure",
+            problems: [
+              { name: "MDN — Semantic HTML", url: "https://developer.mozilla.org/en-US/docs/Glossary/Semantics#semantics_in_html" },
+              { name: "web.dev — Document structure", url: "https://web.dev/learn/html/document-structure/" },
+              { name: "Frontend Masters — HTML Forms", url: "https://frontendmasters.com/courses/web-forms/" },
+            ],
+          },
+          {
+            name: "Forms & Input Validation",
+            problems: [
+              { name: "MDN — HTML Forms", url: "https://developer.mozilla.org/en-US/docs/Learn/Forms" },
+              { name: "Constraint Validation API", url: "https://developer.mozilla.org/en-US/docs/Web/HTML/Constraint_validation" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "CSS Fundamentals",
+        emoji: "🎨",
+        priority: "high",
+        subtopics: [
+          {
+            name: "Box Model, Positioning, Specificity",
+            problems: [
+              { name: "MDN — Box Model", url: "https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Box_Model" },
+              { name: "CSS Specificity (CSS-Tricks)", url: "https://css-tricks.com/specifics-on-css-specificity/" },
+              { name: "Stacking Context", url: "https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_positioned_layout/Understanding_z-index/The_stacking_context" },
+            ],
+          },
+          {
+            name: "Flexbox",
+            problems: [
+              { name: "Flexbox Froggy (game)", url: "https://flexboxfroggy.com/" },
+              { name: "CSS-Tricks — Flexbox Guide", url: "https://css-tricks.com/snippets/css/a-guide-to-flexbox/" },
+            ],
+          },
+          {
+            name: "Grid",
+            problems: [
+              { name: "Grid Garden (game)", url: "https://cssgridgarden.com/" },
+              { name: "CSS-Tricks — Grid Guide", url: "https://css-tricks.com/snippets/css/complete-guide-grid/" },
+            ],
+          },
+          {
+            name: "Responsive Design & Media Queries",
+            problems: [
+              { name: "Responsive Web Design (web.dev)", url: "https://web.dev/learn/design/" },
+              { name: "Container Queries", url: "https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Container_Queries" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "CSS Advanced",
+        emoji: "✨",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "Animations & Transitions",
+            problems: [
+              { name: "MDN — CSS Animations", url: "https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_animations/Using_CSS_animations" },
+              { name: "Animation performance (web.dev)", url: "https://web.dev/articles/animations-guide" },
+            ],
+          },
+          {
+            name: "CSS-in-JS, Modules, Tailwind",
+            problems: [
+              { name: "Why Tailwind?", url: "https://tailwindcss.com/docs/utility-first" },
+              { name: "Styled Components vs Emotion vs CSS Modules", url: "https://css-tricks.com/a-thorough-analysis-of-css-in-js/" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "JavaScript Core",
+        emoji: "🟨",
+        priority: "high",
+        subtopics: [
+          {
+            name: "Closures, Scope, Hoisting",
+            problems: [
+              { name: "JavaScript.info — Closures", url: "https://javascript.info/closure" },
+              { name: "Var/Let/Const Hoisting", url: "https://developer.mozilla.org/en-US/docs/Glossary/Hoisting" },
+              { name: "Common JS Interview Q — Closures (GfG)", url: "https://www.geeksforgeeks.org/closure-in-javascript/" },
+            ],
+          },
+          {
+            name: "Promises, async/await, Event Loop",
+            problems: [
+              { name: "JavaScript Visualizer (event loop)", url: "https://www.jsv9000.app/" },
+              { name: "JavaScript.info — Promise chaining", url: "https://javascript.info/promise-chaining" },
+              { name: "Tasks, microtasks, queues", url: "https://jakearchibald.com/2015/tasks-microtasks-queues-and-schedules/" },
+            ],
+          },
+          {
+            name: "this binding, call/apply/bind",
+            problems: [
+              { name: "MDN — this", url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this" },
+              { name: "Function.prototype.bind", url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind" },
+            ],
+          },
+          {
+            name: "Prototypes & Inheritance",
+            problems: [
+              { name: "JavaScript.info — Prototypal inheritance", url: "https://javascript.info/prototype-inheritance" },
+              { name: "MDN — Object prototypes", url: "https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/Object_prototypes" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "JavaScript Advanced",
+        emoji: "⚡",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "Iterators, Generators, Symbols",
+            problems: [
+              { name: "JavaScript.info — Generators", url: "https://javascript.info/generators" },
+              { name: "MDN — Iteration protocols", url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols" },
+            ],
+          },
+          {
+            name: "Modules (ESM, CJS)",
+            problems: [
+              { name: "ESM vs CJS — Node docs", url: "https://nodejs.org/api/esm.html" },
+              { name: "JavaScript.info — Modules", url: "https://javascript.info/modules-intro" },
+            ],
+          },
+          {
+            name: "Memory Management & GC",
+            problems: [
+              { name: "MDN — Memory management", url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_management" },
+              { name: "JS Memory leaks (Auth0)", url: "https://auth0.com/blog/four-types-of-leaks-in-your-javascript-code-and-how-to-get-rid-of-them/" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "TypeScript",
+        emoji: "🔷",
+        priority: "high",
+        subtopics: [
+          {
+            name: "Types, Interfaces, Type Aliases",
+            problems: [
+              { name: "TS Handbook — Everyday Types", url: "https://www.typescriptlang.org/docs/handbook/2/everyday-types.html" },
+              { name: "type vs interface", url: "https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#differences-between-type-aliases-and-interfaces" },
+            ],
+          },
+          {
+            name: "Generics & Utility Types",
+            problems: [
+              { name: "TS — Generics", url: "https://www.typescriptlang.org/docs/handbook/2/generics.html" },
+              { name: "Utility Types (Partial, Pick, Omit)", url: "https://www.typescriptlang.org/docs/handbook/utility-types.html" },
+              { name: "Type Challenges (GitHub)", url: "https://github.com/type-challenges/type-challenges" },
+            ],
+          },
+          {
+            name: "Type Narrowing & Discriminated Unions",
+            problems: [
+              { name: "TS — Narrowing", url: "https://www.typescriptlang.org/docs/handbook/2/narrowing.html" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "React Core",
+        emoji: "⚛️",
+        priority: "high",
+        subtopics: [
+          {
+            name: "Components, Props, State",
+            problems: [
+              { name: "React Docs — Learn React", url: "https://react.dev/learn" },
+              { name: "Thinking in React", url: "https://react.dev/learn/thinking-in-react" },
+            ],
+          },
+          {
+            name: "useState, useEffect, Lifecycle",
+            problems: [
+              { name: "React Docs — useEffect", url: "https://react.dev/reference/react/useEffect" },
+              { name: "You Might Not Need an Effect", url: "https://react.dev/learn/you-might-not-need-an-effect" },
+            ],
+          },
+          {
+            name: "Lists, Keys, Reconciliation",
+            problems: [
+              { name: "React Docs — Rendering Lists", url: "https://react.dev/learn/rendering-lists" },
+              { name: "Why keys matter (Kent C. Dodds)", url: "https://kentcdodds.com/blog/understanding-reacts-key-prop" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "React Hooks (Advanced)",
+        emoji: "🪝",
+        priority: "high",
+        subtopics: [
+          {
+            name: "useMemo, useCallback, React.memo",
+            problems: [
+              { name: "useMemo & useCallback (Kent C. Dodds)", url: "https://kentcdodds.com/blog/usememo-and-usecallback" },
+              { name: "React Docs — useMemo", url: "https://react.dev/reference/react/useMemo" },
+            ],
+          },
+          {
+            name: "useReducer & useContext",
+            problems: [
+              { name: "useReducer", url: "https://react.dev/reference/react/useReducer" },
+              { name: "useContext", url: "https://react.dev/reference/react/useContext" },
+              { name: "How to use React Context effectively", url: "https://kentcdodds.com/blog/how-to-use-react-context-effectively" },
+            ],
+          },
+          {
+            name: "useRef, Forward Refs, Portals",
+            problems: [
+              { name: "useRef", url: "https://react.dev/reference/react/useRef" },
+              { name: "forwardRef", url: "https://react.dev/reference/react/forwardRef" },
+              { name: "createPortal", url: "https://react.dev/reference/react-dom/createPortal" },
+            ],
+          },
+          {
+            name: "Custom Hooks",
+            problems: [
+              { name: "Reusing Logic with Custom Hooks", url: "https://react.dev/learn/reusing-logic-with-custom-hooks" },
+              { name: "useHooks.com — examples", url: "https://usehooks.com/" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "React Advanced",
+        emoji: "🚀",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "Reconciliation & Virtual DOM",
+            problems: [
+              { name: "React Internals (Acdlite)", url: "https://github.com/acdlite/react-fiber-architecture" },
+              { name: "Render and Commit", url: "https://react.dev/learn/render-and-commit" },
+            ],
+          },
+          {
+            name: "Suspense, Concurrent Rendering, Server Components",
+            problems: [
+              { name: "React 19 features", url: "https://react.dev/blog/2024/12/05/react-19" },
+              { name: "Server Components (Next.js)", url: "https://nextjs.org/docs/app/building-your-application/rendering/server-components" },
+            ],
+          },
+          {
+            name: "Error Boundaries & Suspense Boundaries",
+            problems: [
+              { name: "Error Boundaries", url: "https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "State Management",
+        emoji: "🗂️",
+        priority: "high",
+        subtopics: [
+          {
+            name: "Context API & Reducers",
+            problems: [
+              { name: "Scaling up with Reducer & Context", url: "https://react.dev/learn/scaling-up-with-reducer-and-context" },
+            ],
+          },
+          {
+            name: "Redux, Zustand, Jotai",
+            problems: [
+              { name: "Redux Toolkit", url: "https://redux-toolkit.js.org/tutorials/quick-start" },
+              { name: "Zustand", url: "https://github.com/pmndrs/zustand" },
+              { name: "Jotai", url: "https://jotai.org/docs/introduction" },
+            ],
+          },
+          {
+            name: "Server State — React Query / SWR",
+            problems: [
+              { name: "TanStack Query (React Query)", url: "https://tanstack.com/query/latest/docs/framework/react/overview" },
+              { name: "SWR", url: "https://swr.vercel.app/" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Performance & Optimization",
+        emoji: "🏎️",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "Code Splitting & Lazy Loading",
+            problems: [
+              { name: "React.lazy & Suspense", url: "https://react.dev/reference/react/lazy" },
+              { name: "Code splitting (web.dev)", url: "https://web.dev/articles/reduce-javascript-payloads-with-code-splitting" },
+            ],
+          },
+          {
+            name: "Web Vitals (LCP, INP, CLS)",
+            problems: [
+              { name: "Core Web Vitals", url: "https://web.dev/articles/vitals" },
+              { name: "Optimize LCP", url: "https://web.dev/articles/optimize-lcp" },
+            ],
+          },
+          {
+            name: "Bundle Analysis",
+            problems: [
+              { name: "webpack-bundle-analyzer", url: "https://github.com/webpack-contrib/webpack-bundle-analyzer" },
+              { name: "Tree Shaking", url: "https://webpack.js.org/guides/tree-shaking/" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Build Tools",
+        emoji: "🔧",
+        priority: "low",
+        subtopics: [
+          {
+            name: "Vite, Webpack, Turbopack",
+            problems: [
+              { name: "Vite — Why?", url: "https://vitejs.dev/guide/why" },
+              { name: "Webpack Concepts", url: "https://webpack.js.org/concepts/" },
+            ],
+          },
+          {
+            name: "ESLint, Prettier, Husky",
+            problems: [
+              { name: "ESLint Configuration", url: "https://eslint.org/docs/latest/use/configure/" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Testing",
+        emoji: "🧪",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "Unit Tests — Jest / Vitest",
+            problems: [
+              { name: "Vitest Docs", url: "https://vitest.dev/guide/" },
+              { name: "Jest Docs", url: "https://jestjs.io/docs/getting-started" },
+            ],
+          },
+          {
+            name: "Component Tests — React Testing Library",
+            problems: [
+              { name: "Testing Library — Common Mistakes", url: "https://kentcdodds.com/blog/common-mistakes-with-react-testing-library" },
+              { name: "Queries cheatsheet", url: "https://testing-library.com/docs/queries/about" },
+            ],
+          },
+          {
+            name: "E2E — Cypress / Playwright",
+            problems: [
+              { name: "Playwright Docs", url: "https://playwright.dev/docs/intro" },
+              { name: "Cypress vs Playwright", url: "https://www.browserstack.com/guide/cypress-vs-playwright" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Accessibility (a11y)",
+        emoji: "♿",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "ARIA, Roles, Keyboard Navigation",
+            problems: [
+              { name: "MDN — ARIA", url: "https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA" },
+              { name: "WCAG Quick Reference", url: "https://www.w3.org/WAI/WCAG21/quickref/" },
+              { name: "Practical accessibility (web.dev)", url: "https://web.dev/learn/accessibility/" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Browser & Web APIs",
+        emoji: "🌐",
+        priority: "low",
+        subtopics: [
+          {
+            name: "Storage APIs (localStorage, IndexedDB)",
+            problems: [
+              { name: "MDN — Web Storage", url: "https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API" },
+              { name: "IndexedDB", url: "https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API" },
+            ],
+          },
+          {
+            name: "Service Workers & PWAs",
+            problems: [
+              { name: "Service Worker Cookbook", url: "https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API" },
+              { name: "PWA on web.dev", url: "https://web.dev/explore/progressive-web-apps" },
+            ],
+          },
+          {
+            name: "Fetch, WebSockets, SSE",
+            problems: [
+              { name: "MDN — Fetch", url: "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API" },
+              { name: "MDN — WebSockets", url: "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API" },
+              { name: "Server-Sent Events", url: "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events" },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // ════════════════════════════════════════════════════════════
+  // BACKEND
+  // ════════════════════════════════════════════════════════════
+  backend: {
+    icon: "⚙️",
+    label: "Backend",
+    color: "green",
+    topics: [
+      {
+        name: "HTTP & REST",
+        emoji: "🌍",
+        priority: "high",
+        subtopics: [
+          {
+            name: "HTTP Methods, Status Codes, Headers",
+            problems: [
+              { name: "MDN — HTTP", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP" },
+              { name: "HTTP status codes", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status" },
+              { name: "REST API Tutorial", url: "https://restfulapi.net/" },
+            ],
+          },
+          {
+            name: "CORS, Caching, Compression",
+            problems: [
+              { name: "MDN — CORS", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS" },
+              { name: "HTTP Caching (web.dev)", url: "https://web.dev/articles/http-cache" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "API Design",
+        emoji: "🧾",
+        priority: "high",
+        subtopics: [
+          {
+            name: "REST best practices",
+            problems: [
+              { name: "Microsoft — REST API guidelines", url: "https://github.com/microsoft/api-guidelines" },
+              { name: "API versioning patterns", url: "https://restfulapi.net/versioning/" },
+              { name: "Pagination strategies", url: "https://nordicapis.com/everything-you-need-to-know-about-api-pagination/" },
+            ],
+          },
+          {
+            name: "GraphQL Basics",
+            problems: [
+              { name: "GraphQL — Learn", url: "https://graphql.org/learn/" },
+              { name: "Apollo — When to use GraphQL", url: "https://www.apollographql.com/blog/when-to-use-graphql" },
+            ],
+          },
+          {
+            name: "gRPC & WebSockets",
+            problems: [
+              { name: "gRPC Concepts", url: "https://grpc.io/docs/what-is-grpc/core-concepts/" },
+              { name: "REST vs gRPC vs GraphQL", url: "https://www.redhat.com/en/topics/api/grpc-vs-rest" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Python — FastAPI",
+        emoji: "🐍",
+        priority: "high",
+        subtopics: [
+          {
+            name: "FastAPI Core",
+            problems: [
+              { name: "FastAPI Tutorial", url: "https://fastapi.tiangolo.com/tutorial/" },
+              { name: "Pydantic v2", url: "https://docs.pydantic.dev/latest/" },
+              { name: "Dependency Injection in FastAPI", url: "https://fastapi.tiangolo.com/tutorial/dependencies/" },
+            ],
+          },
+          {
+            name: "Background Tasks, WebSockets, Streaming",
+            problems: [
+              { name: "Background Tasks", url: "https://fastapi.tiangolo.com/tutorial/background-tasks/" },
+              { name: "WebSockets in FastAPI", url: "https://fastapi.tiangolo.com/advanced/websockets/" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Node.js — Express / Nest",
+        emoji: "🟢",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "Express Routing & Middleware",
+            problems: [
+              { name: "Express — Middleware", url: "https://expressjs.com/en/guide/using-middleware.html" },
+              { name: "Node.js Best Practices (GitHub)", url: "https://github.com/goldbergyoni/nodebestpractices" },
+            ],
+          },
+          {
+            name: "NestJS Architecture",
+            problems: [
+              { name: "NestJS — First Steps", url: "https://docs.nestjs.com/first-steps" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "SQL Databases (PostgreSQL)",
+        emoji: "🐘",
+        priority: "high",
+        subtopics: [
+          {
+            name: "Joins, Indexes, Transactions",
+            problems: [
+              { name: "Use The Index, Luke!", url: "https://use-the-index-luke.com/" },
+              { name: "PostgreSQL — Transactions", url: "https://www.postgresql.org/docs/current/tutorial-transactions.html" },
+              { name: "SQL Joins explained", url: "https://www.geeksforgeeks.org/sql-join-set-1-inner-left-right-and-full-joins/" },
+            ],
+          },
+          {
+            name: "ACID, Isolation Levels, Locks",
+            problems: [
+              { name: "Postgres MVCC", url: "https://www.postgresql.org/docs/current/mvcc-intro.html" },
+              { name: "Transaction Isolation Levels (GfG)", url: "https://www.geeksforgeeks.org/transaction-isolation-levels-dbms/" },
+            ],
+          },
+          {
+            name: "Query Optimization",
+            problems: [
+              { name: "EXPLAIN ANALYZE", url: "https://www.postgresql.org/docs/current/using-explain.html" },
+              { name: "Slow query analysis", url: "https://www.crunchydata.com/blog/get-started-with-postgresql-query-tuning" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "NoSQL (MongoDB, Redis)",
+        emoji: "🍃",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "MongoDB Document Modeling",
+            problems: [
+              { name: "MongoDB — Data Modeling", url: "https://www.mongodb.com/docs/manual/data-modeling/" },
+              { name: "Aggregation Pipeline", url: "https://www.mongodb.com/docs/manual/aggregation/" },
+            ],
+          },
+          {
+            name: "Redis Patterns (Caching, Locks, Streams)",
+            problems: [
+              { name: "Redis Use Cases", url: "https://redis.io/learn/use-cases/" },
+              { name: "Distributed Locks with Redlock", url: "https://redis.io/docs/latest/develop/use/patterns/distributed-locks/" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "ORMs & Migrations",
+        emoji: "🔄",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "SQLAlchemy & Alembic",
+            problems: [
+              { name: "SQLAlchemy 2.0 Tutorial", url: "https://docs.sqlalchemy.org/en/20/tutorial/" },
+              { name: "Alembic Migrations", url: "https://alembic.sqlalchemy.org/en/latest/tutorial.html" },
+            ],
+          },
+          {
+            name: "Prisma / TypeORM",
+            problems: [
+              { name: "Prisma Getting Started", url: "https://www.prisma.io/docs/getting-started" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Authentication & Authorization",
+        emoji: "🔐",
+        priority: "high",
+        subtopics: [
+          {
+            name: "JWT, Sessions, OAuth 2.0",
+            problems: [
+              { name: "Auth0 — JWT explained", url: "https://jwt.io/introduction" },
+              { name: "OAuth 2.0 Simplified", url: "https://www.oauth.com/" },
+              { name: "Session vs JWT", url: "https://supertokens.com/blog/are-you-using-jwts-for-user-sessions-in-the-correct-way" },
+            ],
+          },
+          {
+            name: "RBAC, Permissions, Password Hashing",
+            problems: [
+              { name: "RBAC vs ABAC (Auth0)", url: "https://auth0.com/intro-to-iam/what-is-role-based-access-control-rbac" },
+              { name: "bcrypt vs Argon2", url: "https://crackstation.net/hashing-security.htm" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Caching",
+        emoji: "💾",
+        priority: "high",
+        subtopics: [
+          {
+            name: "Cache Strategies & Invalidation",
+            problems: [
+              { name: "Caching strategies (AWS)", url: "https://aws.amazon.com/builders-library/caching-challenges-and-strategies/" },
+              { name: "Cache patterns (Redis blog)", url: "https://redis.io/learn/howtos/solutions/caching-architecture/common-caching-patterns" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Message Queues",
+        emoji: "📬",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "Kafka, RabbitMQ, SQS",
+            problems: [
+              { name: "Kafka Quickstart", url: "https://kafka.apache.org/quickstart" },
+              { name: "RabbitMQ Tutorials", url: "https://www.rabbitmq.com/getstarted.html" },
+              { name: "Kafka vs RabbitMQ", url: "https://www.confluent.io/learn/rabbitmq-vs-apache-kafka/" },
+            ],
+          },
+          {
+            name: "Pub/Sub & Event-Driven Architecture",
+            problems: [
+              { name: "Event-Driven Architecture (AWS)", url: "https://aws.amazon.com/event-driven-architecture/" },
+              { name: "Outbox Pattern", url: "https://microservices.io/patterns/data/transactional-outbox.html" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Concurrency",
+        emoji: "🧵",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "Async I/O, Threads, Processes",
+            problems: [
+              { name: "Python asyncio", url: "https://docs.python.org/3/library/asyncio.html" },
+              { name: "GIL explained", url: "https://realpython.com/python-gil/" },
+              { name: "Node.js event loop", url: "https://nodejs.org/en/learn/asynchronous-work/event-loop-timers-and-nexttick" },
+            ],
+          },
+          {
+            name: "Race Conditions, Deadlocks, Locks",
+            problems: [
+              { name: "Race conditions (GfG)", url: "https://www.geeksforgeeks.org/race-condition-in-multi-threading/" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Testing (Backend)",
+        emoji: "🔬",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "Unit, Integration, Contract Tests",
+            problems: [
+              { name: "Pytest Docs", url: "https://docs.pytest.org/en/stable/" },
+              { name: "Testing Microservices (Martin Fowler)", url: "https://martinfowler.com/articles/microservice-testing/" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Deployment & DevOps",
+        emoji: "🚢",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "Docker",
+            problems: [
+              { name: "Docker — Getting Started", url: "https://docs.docker.com/get-started/" },
+              { name: "Dockerfile best practices", url: "https://docs.docker.com/develop/develop-images/dockerfile_best-practices/" },
+            ],
+          },
+          {
+            name: "Kubernetes basics",
+            problems: [
+              { name: "Kubernetes Tutorial (official)", url: "https://kubernetes.io/docs/tutorials/kubernetes-basics/" },
+              { name: "Kubernetes for Developers (free book)", url: "https://kubernetesbyexample.com/" },
+            ],
+          },
+          {
+            name: "CI/CD Pipelines",
+            problems: [
+              { name: "GitHub Actions", url: "https://docs.github.com/en/actions/learn-github-actions" },
+              { name: "CI/CD Concepts (Atlassian)", url: "https://www.atlassian.com/continuous-delivery/principles/continuous-integration-vs-delivery-vs-deployment" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Observability",
+        emoji: "📊",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "Logging, Metrics, Tracing",
+            problems: [
+              { name: "Three Pillars (Honeycomb)", url: "https://www.honeycomb.io/blog/three-pillars-with-zero-answers-towards-observability" },
+              { name: "Prometheus basics", url: "https://prometheus.io/docs/introduction/overview/" },
+              { name: "OpenTelemetry", url: "https://opentelemetry.io/docs/what-is-opentelemetry/" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Security",
+        emoji: "🛡️",
+        priority: "high",
+        subtopics: [
+          {
+            name: "OWASP Top 10",
+            problems: [
+              { name: "OWASP Top 10", url: "https://owasp.org/www-project-top-ten/" },
+              { name: "SQL Injection (PortSwigger)", url: "https://portswigger.net/web-security/sql-injection" },
+              { name: "XSS (PortSwigger)", url: "https://portswigger.net/web-security/cross-site-scripting" },
+            ],
+          },
+          {
+            name: "HTTPS, TLS, CSRF",
+            problems: [
+              { name: "TLS Explained", url: "https://howhttps.works/" },
+              { name: "CSRF (PortSwigger)", url: "https://portswigger.net/web-security/csrf" },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // ════════════════════════════════════════════════════════════
+  // SYSTEM DESIGN
+  // ════════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════
+  // LOW-LEVEL DESIGN (LLD) — OOP, Design Patterns, Class Design
+  // ════════════════════════════════════════════════════════════
+  lld: {
+    icon: "🧱",
+    label: "Low-Level Design",
+    color: "teal",
+    topics: [
+      {
+        name: "OOP Fundamentals",
+        emoji: "🧬",
+        priority: "high",
+        subtopics: [
+          {
+            name: "4 Pillars — Encapsulation, Abstraction, Inheritance, Polymorphism",
+            problems: [
+              { name: "OOP Concepts (GfG)", url: "https://www.geeksforgeeks.org/introduction-of-object-oriented-programming/" },
+              { name: "Refactoring.Guru — OOP", url: "https://refactoring.guru/refactoring/what-is-refactoring" },
+              { name: "Composition over Inheritance", url: "https://en.wikipedia.org/wiki/Composition_over_inheritance" },
+            ],
+          },
+          {
+            name: "Class Relationships — Association, Aggregation, Composition",
+            problems: [
+              { name: "UML Class Relationships (GfG)", url: "https://www.geeksforgeeks.org/association-composition-aggregation-java/" },
+              { name: "Aggregation vs Composition", url: "https://stackoverflow.com/questions/885937/what-is-the-difference-between-association-aggregation-and-composition" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "SOLID Principles",
+        emoji: "🪨",
+        priority: "high",
+        subtopics: [
+          {
+            name: "Single Responsibility (SRP) & Open-Closed (OCP)",
+            problems: [
+              { name: "SOLID — Single Responsibility", url: "https://www.baeldung.com/solid-principles" },
+              { name: "Open-Closed Principle (Refactoring.Guru)", url: "https://refactoring.guru/design-patterns/strategy" },
+              { name: "SOLID Explained (FreeCodeCamp)", url: "https://www.freecodecamp.org/news/solid-principles-explained-in-plain-english/" },
+            ],
+          },
+          {
+            name: "Liskov, Interface Segregation, Dependency Inversion",
+            problems: [
+              { name: "Liskov Substitution (GfG)", url: "https://www.geeksforgeeks.org/liskov-substitution-principle/" },
+              { name: "Interface Segregation", url: "https://www.geeksforgeeks.org/interface-segregation-principle/" },
+              { name: "Dependency Inversion", url: "https://www.geeksforgeeks.org/dependecy-inversion-principle-solid/" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Creational Design Patterns",
+        emoji: "🏭",
+        priority: "high",
+        subtopics: [
+          {
+            name: "Singleton, Factory, Abstract Factory",
+            problems: [
+              { name: "Singleton (Refactoring.Guru)", url: "https://refactoring.guru/design-patterns/singleton" },
+              { name: "Factory Method (Refactoring.Guru)", url: "https://refactoring.guru/design-patterns/factory-method" },
+              { name: "Abstract Factory (Refactoring.Guru)", url: "https://refactoring.guru/design-patterns/abstract-factory" },
+            ],
+          },
+          {
+            name: "Builder & Prototype",
+            problems: [
+              { name: "Builder (Refactoring.Guru)", url: "https://refactoring.guru/design-patterns/builder" },
+              { name: "Prototype (Refactoring.Guru)", url: "https://refactoring.guru/design-patterns/prototype" },
+              { name: "Builder vs Factory", url: "https://stackoverflow.com/questions/757743/what-is-the-difference-between-builder-design-pattern-and-factory-design-patte" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Structural Design Patterns",
+        emoji: "🏛️",
+        priority: "high",
+        subtopics: [
+          {
+            name: "Adapter, Decorator, Proxy",
+            problems: [
+              { name: "Adapter (Refactoring.Guru)", url: "https://refactoring.guru/design-patterns/adapter" },
+              { name: "Decorator (Refactoring.Guru)", url: "https://refactoring.guru/design-patterns/decorator" },
+              { name: "Proxy (Refactoring.Guru)", url: "https://refactoring.guru/design-patterns/proxy" },
+            ],
+          },
+          {
+            name: "Facade, Composite, Bridge, Flyweight",
+            problems: [
+              { name: "Facade (Refactoring.Guru)", url: "https://refactoring.guru/design-patterns/facade" },
+              { name: "Composite (Refactoring.Guru)", url: "https://refactoring.guru/design-patterns/composite" },
+              { name: "Bridge (Refactoring.Guru)", url: "https://refactoring.guru/design-patterns/bridge" },
+              { name: "Flyweight (Refactoring.Guru)", url: "https://refactoring.guru/design-patterns/flyweight" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Behavioral Design Patterns",
+        emoji: "🎭",
+        priority: "high",
+        subtopics: [
+          {
+            name: "Observer, Strategy, Command",
+            problems: [
+              { name: "Observer (Refactoring.Guru)", url: "https://refactoring.guru/design-patterns/observer" },
+              { name: "Strategy (Refactoring.Guru)", url: "https://refactoring.guru/design-patterns/strategy" },
+              { name: "Command (Refactoring.Guru)", url: "https://refactoring.guru/design-patterns/command" },
+            ],
+          },
+          {
+            name: "State, Template Method, Chain of Responsibility",
+            problems: [
+              { name: "State (Refactoring.Guru)", url: "https://refactoring.guru/design-patterns/state" },
+              { name: "Template Method", url: "https://refactoring.guru/design-patterns/template-method" },
+              { name: "Chain of Responsibility", url: "https://refactoring.guru/design-patterns/chain-of-responsibility" },
+            ],
+          },
+          {
+            name: "Iterator, Mediator, Memento, Visitor",
+            problems: [
+              { name: "Iterator (Refactoring.Guru)", url: "https://refactoring.guru/design-patterns/iterator" },
+              { name: "Mediator (Refactoring.Guru)", url: "https://refactoring.guru/design-patterns/mediator" },
+              { name: "Memento (Refactoring.Guru)", url: "https://refactoring.guru/design-patterns/memento" },
+              { name: "Visitor (Refactoring.Guru)", url: "https://refactoring.guru/design-patterns/visitor" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "UML & Class Diagrams",
+        emoji: "📐",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "Class, Sequence & State Diagrams",
+            problems: [
+              { name: "UML Class Diagram Tutorial", url: "https://www.visual-paradigm.com/guide/uml-unified-modeling-language/uml-class-diagram-tutorial/" },
+              { name: "Sequence Diagrams (GfG)", url: "https://www.geeksforgeeks.org/unified-modeling-language-uml-sequence-diagrams/" },
+              { name: "PlantUML Quickstart", url: "https://plantuml.com/class-diagram" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Classic LLD Problems — Easy",
+        emoji: "🎮",
+        priority: "high",
+        subtopics: [
+          {
+            name: "Parking Lot",
+            problems: [
+              { name: "Parking Lot LLD (GitHub)", url: "https://github.com/tssovi/grokking-the-object-oriented-design-interview/blob/master/object-oriented-design-case-studies/design-a-parking-lot.md" },
+              { name: "Parking Lot LLD (LeetCode discuss)", url: "https://leetcode.com/discuss/general-discussion/1063454/system-design-design-a-parking-lot" },
+              { name: "Walkthrough video (YouTube)", url: "https://www.youtube.com/results?search_query=parking+lot+low+level+design" },
+            ],
+          },
+          {
+            name: "Vending Machine",
+            problems: [
+              { name: "Vending Machine LLD (GitHub)", url: "https://github.com/tssovi/grokking-the-object-oriented-design-interview/blob/master/object-oriented-design-case-studies/design-a-vending-machine.md" },
+              { name: "Vending Machine State Pattern", url: "https://www.geeksforgeeks.org/design-vending-machine/" },
+            ],
+          },
+          {
+            name: "Tic-Tac-Toe & Snake-Ladder",
+            problems: [
+              { name: "Tic-Tac-Toe LLD (GfG)", url: "https://www.geeksforgeeks.org/design-tic-tac-toe-game/" },
+              { name: "Snake & Ladder LLD", url: "https://www.geeksforgeeks.org/snakes-ladders-problem-2/" },
+              { name: "LeetCode 348 — Tic Tac Toe", url: "https://leetcode.com/problems/design-tic-tac-toe/" },
+            ],
+          },
+          {
+            name: "LRU / LFU Cache (as a class design)",
+            problems: [
+              { name: "LRU Cache", url: "https://leetcode.com/problems/lru-cache/" },
+              { name: "LFU Cache", url: "https://leetcode.com/problems/lfu-cache/" },
+              { name: "Design HashMap", url: "https://leetcode.com/problems/design-hashmap/" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Classic LLD Problems — Medium",
+        emoji: "🎲",
+        priority: "high",
+        subtopics: [
+          {
+            name: "Library Management System",
+            problems: [
+              { name: "Library LLD (GitHub)", url: "https://github.com/tssovi/grokking-the-object-oriented-design-interview/blob/master/object-oriented-design-case-studies/design-a-library-management-system.md" },
+              { name: "Library Management (GfG)", url: "https://www.geeksforgeeks.org/design-library-management-system/" },
+            ],
+          },
+          {
+            name: "Elevator System",
+            problems: [
+              { name: "Elevator LLD (GitHub)", url: "https://github.com/tssovi/grokking-the-object-oriented-design-interview/blob/master/object-oriented-design-case-studies/design-an-elevator-system.md" },
+              { name: "Elevator Algorithm (LookUp)", url: "https://www.geeksforgeeks.org/design-data-structures-and-algorithms-for-in-memory-file-system/" },
+              { name: "Multi-elevator scheduling", url: "https://www.codeproject.com/Articles/30529/A-Multi-Elevator-Algorithm" },
+            ],
+          },
+          {
+            name: "Splitwise / Expense Sharing",
+            problems: [
+              { name: "Splitwise LLD (GitHub)", url: "https://github.com/anomaly2104/splitwise-low-level-system-design" },
+              { name: "Splitwise design walkthrough", url: "https://medium.com/@adityashete009/system-design-of-splitwise-app-2af56e8fe19c" },
+            ],
+          },
+          {
+            name: "Logger & Rate Limiter (class design)",
+            problems: [
+              { name: "Design Logger", url: "https://leetcode.com/problems/logger-rate-limiter/" },
+              { name: "Hit Counter", url: "https://leetcode.com/problems/design-hit-counter/" },
+              { name: "Token Bucket implementation", url: "https://en.wikipedia.org/wiki/Token_bucket" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Classic LLD Problems — Hard",
+        emoji: "🏆",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "Chess Game",
+            problems: [
+              { name: "Chess LLD (GitHub)", url: "https://github.com/tssovi/grokking-the-object-oriented-design-interview/blob/master/object-oriented-design-case-studies/design-chess.md" },
+              { name: "Chess Game LLD walkthrough", url: "https://medium.com/swlh/design-chess-game-using-oop-3ee0a45a8b34" },
+            ],
+          },
+          {
+            name: "Ride Sharing (Uber / Ola)",
+            problems: [
+              { name: "Uber LLD (GitHub)", url: "https://github.com/tssovi/grokking-the-object-oriented-design-interview/blob/master/object-oriented-design-case-studies/design-uber-backend.md" },
+              { name: "Uber System Design (Educative)", url: "https://www.educative.io/courses/grokking-the-system-design-interview/B8LjwAknR8r" },
+            ],
+          },
+          {
+            name: "Pub-Sub System",
+            problems: [
+              { name: "Design Pub-Sub", url: "https://medium.com/double-pointer/system-design-interview-publish-subscribe-or-pub-sub-architecture-design-with-pros-cons-1d62147f3e1a" },
+              { name: "Observer pattern foundation", url: "https://refactoring.guru/design-patterns/observer" },
+            ],
+          },
+          {
+            name: "In-Memory File System",
+            problems: [
+              { name: "Design In-Memory File System", url: "https://leetcode.com/problems/design-in-memory-file-system/" },
+              { name: "File System (GfG)", url: "https://www.geeksforgeeks.org/design-data-structures-and-algorithms-for-in-memory-file-system/" },
+            ],
+          },
+          {
+            name: "BookMyShow / Movie Ticket Booking",
+            problems: [
+              { name: "BookMyShow LLD (GitHub)", url: "https://github.com/tssovi/grokking-the-object-oriented-design-interview/blob/master/object-oriented-design-case-studies/design-movie-ticket-booking-system.md" },
+              { name: "Concurrency in ticket booking", url: "https://medium.com/double-pointer/system-design-interview-bookmyshow-d030f97b29a6" },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+
+  systemDesign: {
+    icon: "🏗️",
+    label: "System Design",
+    color: "amber",
+    topics: [
+      {
+        name: "Networking Basics",
+        emoji: "🌐",
+        priority: "high",
+        subtopics: [
+          {
+            name: "DNS, TCP, UDP, HTTP/1.1/2/3",
+            problems: [
+              { name: "How DNS works (comic)", url: "https://howdns.works/" },
+              { name: "HTTP/2 vs HTTP/3 (Cloudflare)", url: "https://www.cloudflare.com/learning/performance/http2-vs-http3/" },
+              { name: "TCP vs UDP", url: "https://www.cloudflare.com/learning/ddos/glossary/user-datagram-protocol-udp/" },
+            ],
+          },
+          {
+            name: "Load Balancers — L4 vs L7",
+            problems: [
+              { name: "Load balancing concepts (NGINX)", url: "https://www.nginx.com/resources/glossary/load-balancing/" },
+              { name: "L4 vs L7 (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/glossary/layer-4-load-balancer/" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Scalability Fundamentals",
+        emoji: "📈",
+        priority: "high",
+        subtopics: [
+          {
+            name: "Vertical vs Horizontal, Stateless",
+            problems: [
+              { name: "Scalability primer (Highscalability)", url: "http://highscalability.com/all-time-favorites/" },
+              { name: "ByteByteGo — System Design Primer", url: "https://github.com/donnemartin/system-design-primer" },
+            ],
+          },
+          {
+            name: "Sharding & Partitioning",
+            problems: [
+              { name: "Database Sharding (MongoDB)", url: "https://www.mongodb.com/features/database-sharding-explained" },
+              { name: "Consistent Hashing", url: "https://www.toptal.com/big-data/consistent-hashing" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Reliability & Availability",
+        emoji: "🛟",
+        priority: "high",
+        subtopics: [
+          {
+            name: "Replication, Failover, Backups",
+            problems: [
+              { name: "Designing Data-Intensive Apps — Ch 5 Notes", url: "https://github.com/keyvanakbary/learning-notes/blob/master/books/designing-data-intensive-applications.md#replication" },
+              { name: "Database replication patterns", url: "https://www.educative.io/courses/grokking-the-system-design-interview/B1AKwM8wKWv" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Consistency Models",
+        emoji: "⚖️",
+        priority: "high",
+        subtopics: [
+          {
+            name: "CAP, PACELC, ACID vs BASE",
+            problems: [
+              { name: "CAP Theorem Explained", url: "https://www.ibm.com/topics/cap-theorem" },
+              { name: "PACELC", url: "https://en.wikipedia.org/wiki/PACELC_theorem" },
+              { name: "Strong vs Eventual Consistency", url: "https://www.scylladb.com/glossary/eventual-consistency/" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Caching Strategies",
+        emoji: "🔥",
+        priority: "high",
+        subtopics: [
+          {
+            name: "Cache-Aside, Write-Through, Write-Back",
+            problems: [
+              { name: "Caching strategies (AWS)", url: "https://aws.amazon.com/builders-library/caching-challenges-and-strategies/" },
+              { name: "Cache patterns explained (Educative)", url: "https://www.educative.io/courses/grokking-the-system-design-interview/m2YDVZnQ8lG" },
+            ],
+          },
+          {
+            name: "LRU, LFU, TTL Eviction",
+            problems: [
+              { name: "LRU Cache (LeetCode)", url: "https://leetcode.com/problems/lru-cache/" },
+              { name: "LFU Cache (LeetCode)", url: "https://leetcode.com/problems/lfu-cache/" },
+            ],
+          },
+          {
+            name: "CDN & Edge Caching",
+            problems: [
+              { name: "What is a CDN? (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/what-is-a-cdn/" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Database Scaling",
+        emoji: "📦",
+        priority: "high",
+        subtopics: [
+          {
+            name: "Read Replicas, Master-Slave",
+            problems: [
+              { name: "Postgres replication overview", url: "https://www.postgresql.org/docs/current/high-availability.html" },
+              { name: "Read replicas (AWS RDS)", url: "https://aws.amazon.com/rds/features/read-replicas/" },
+            ],
+          },
+          {
+            name: "Indexing Strategy",
+            problems: [
+              { name: "Use The Index, Luke (full book)", url: "https://use-the-index-luke.com/" },
+              { name: "B-Tree vs Hash Indexes", url: "https://www.postgresql.org/docs/current/indexes-types.html" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Async Communication",
+        emoji: "📡",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "Pub/Sub, Event Sourcing, CQRS",
+            problems: [
+              { name: "Event Sourcing (Martin Fowler)", url: "https://martinfowler.com/eaaDev/EventSourcing.html" },
+              { name: "CQRS (Martin Fowler)", url: "https://martinfowler.com/bliki/CQRS.html" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Rate Limiting",
+        emoji: "🚦",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "Token Bucket, Leaky Bucket, Sliding Window",
+            problems: [
+              { name: "Rate Limiting Algorithms (Kong)", url: "https://konghq.com/blog/engineering/how-to-design-a-scalable-rate-limiting-algorithm" },
+              { name: "Rate Limiting (Cloudflare)", url: "https://www.cloudflare.com/learning/bots/what-is-rate-limiting/" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Microservices",
+        emoji: "🧩",
+        priority: "medium",
+        subtopics: [
+          {
+            name: "Service Discovery, Service Mesh",
+            problems: [
+              { name: "Microservices.io — patterns", url: "https://microservices.io/patterns/index.html" },
+              { name: "Istio basics", url: "https://istio.io/latest/about/service-mesh/" },
+            ],
+          },
+          {
+            name: "API Gateway",
+            problems: [
+              { name: "API Gateway pattern", url: "https://microservices.io/patterns/apigateway.html" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Classic Design Problems",
+        emoji: "📐",
+        priority: "high",
+        subtopics: [
+          {
+            name: "URL Shortener (TinyURL/bit.ly)",
+            problems: [
+              { name: "Design URL Shortener (HighScalability)", url: "https://highscalability.com/design-of-a-modern-cache/" },
+              { name: "TinyURL System Design (Educative)", url: "https://www.educative.io/courses/grokking-the-system-design-interview/m2ygV4E81AR" },
+            ],
+          },
+          {
+            name: "Rate Limiter Design",
+            problems: [
+              { name: "Designing a Rate Limiter (ByteByteGo)", url: "https://blog.bytebytego.com/p/rate-limiter-for-the-real-world" },
+            ],
+          },
+          {
+            name: "Chat System (WhatsApp / Slack)",
+            problems: [
+              { name: "Design WhatsApp (HiredInTech)", url: "https://www.educative.io/courses/grokking-the-system-design-interview/NE5LpPrWrKv" },
+            ],
+          },
+          {
+            name: "Newsfeed (Twitter / Instagram)",
+            problems: [
+              { name: "Design Twitter (Educative)", url: "https://www.educative.io/courses/grokking-the-system-design-interview/m2yDVZnQ8lG" },
+            ],
+          },
+          {
+            name: "Parking Lot — OOP Design",
+            problems: [
+              { name: "Parking Lot Design (LeetCode discuss)", url: "https://leetcode.com/discuss/general-discussion/1063454/system-design-design-a-parking-lot" },
+            ],
+          },
+          {
+            name: "File Storage (Dropbox / Google Drive)",
+            problems: [
+              { name: "Design Dropbox (ByteByteGo)", url: "https://blog.bytebytego.com/p/ep37-design-a-cloud-file-storage" },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+};
+
+// ============================================================================
+// STATE MANAGEMENT (localStorage + URL hash share)
+// ============================================================================
+const STORAGE_KEY = 'yashi-revision-tracker-v1';
+const THEME_KEY = 'yashi-tracker-theme';
+let state = {}; // { sectionKey: { topicIdx: { subtopicIdx: { done: bool, revisionDate: ISOstr } } } }
+let isViewingSnapshot = false;
+
+function loadState() {
+  // Check for shared snapshot in URL hash
+  const hash = window.location.hash;
+  if (hash.startsWith('#share=')) {
+    try {
+      const encoded = hash.slice(7);
+      const decoded = JSON.parse(decodeURIComponent(atob(encoded)));
+      state = decoded;
+      isViewingSnapshot = true;
+      document.getElementById('viewingBadge').style.display = '';
+      document.getElementById('resetBtn').style.display = 'none';
+      showToast('Viewing shared snapshot — your own progress is preserved');
+      return;
+    } catch (e) {
+      console.warn('Invalid share URL', e);
+    }
+  }
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) state = JSON.parse(raw);
+  } catch (e) { console.warn(e); }
+}
+
+function saveState() {
+  if (isViewingSnapshot) return;
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch (e) { console.warn('Save failed:', e); }
+}
+
+function getSubtopicState(sectionKey, topicIdx, subIdx) {
+  return state?.[sectionKey]?.[topicIdx]?.[subIdx] || { done: false, targetDate: null, revisionDate: null };
+}
+
+function setSubtopicState(sectionKey, topicIdx, subIdx, update) {
+  if (!state[sectionKey]) state[sectionKey] = {};
+  if (!state[sectionKey][topicIdx]) state[sectionKey][topicIdx] = {};
+  if (!state[sectionKey][topicIdx][subIdx]) state[sectionKey][topicIdx][subIdx] = { done: false, targetDate: null, revisionDate: null };
+  Object.assign(state[sectionKey][topicIdx][subIdx], update);
+  saveState();
+}
+
+// Spaced repetition: when marked done, default next revision = +3 days
+function defaultRevisionDate() {
+  const d = new Date();
+  d.setDate(d.getDate() + 3);
+  return d.toISOString().split('T')[0];
+}
+
+// ============================================================================
+// RENDERING
+// ============================================================================
+function calcSectionProgress(sectionKey) {
+  const section = CURRICULUM[sectionKey];
+  let done = 0, total = 0;
+  section.topics.forEach((topic, ti) => {
+    topic.subtopics.forEach((_, si) => {
+      total++;
+      if (getSubtopicState(sectionKey, ti, si).done) done++;
+    });
+  });
+  return { done, total, pct: total ? Math.round((done / total) * 100) : 0 };
+}
+
+function calcTopicProgress(sectionKey, topicIdx) {
+  const topic = CURRICULUM[sectionKey].topics[topicIdx];
+  let done = 0;
+  topic.subtopics.forEach((_, si) => {
+    if (getSubtopicState(sectionKey, topicIdx, si).done) done++;
+  });
+  return { done, total: topic.subtopics.length, pct: topic.subtopics.length ? Math.round((done / topic.subtopics.length) * 100) : 0 };
+}
+
+function renderOverall() {
+  let done = 0, total = 0;
+  Object.keys(CURRICULUM).forEach(k => {
+    const p = calcSectionProgress(k);
+    done += p.done; total += p.total;
+  });
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  document.getElementById('overallPct').textContent = pct + '%';
+  document.getElementById('overallText').textContent = `${done} of ${total} subtopics complete`;
+  document.getElementById('overallBar').style.width = pct + '%';
+}
+
+function dateStatus(dateStr, ignoreDoneCheck) {
+  // ignoreDoneCheck: when called for target dates from a NOT-done subtopic,
+  // pass false (default behavior). The previous gated-on-done logic only made
+  // sense for revision dates; we now call this independently with the right flag.
+  if (!dateStr) return '';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const target = new Date(dateStr); target.setHours(0,0,0,0);
+  const days = Math.round((target - today) / (1000*60*60*24));
+  if (days < 0) return 'overdue';
+  if (days <= 2) return 'due-soon';
+  return '';
+}
+
+function renderAll() {
+  const container = document.getElementById('sections');
+  container.innerHTML = '';
+
+  Object.keys(CURRICULUM).forEach(sectionKey => {
+    const section = CURRICULUM[sectionKey];
+    const prog = calcSectionProgress(sectionKey);
+
+    const sectionEl = document.createElement('div');
+    sectionEl.className = 'section';
+    sectionEl.dataset.collapsed = 'false';
+    sectionEl.dataset.section = sectionKey;
+    sectionEl.style.setProperty('--section-color', `var(--${sectionKey})`);
+    sectionEl.style.setProperty('--section-bg', `var(--${sectionKey}-bg)`);
+
+    sectionEl.innerHTML = `
+      <div class="section-header">
+        <div class="section-icon">${section.icon}</div>
+        <div class="section-title">
+          <h2>${section.label}</h2>
+          <div class="section-meta">
+            <div class="section-progress-wrapper">
+              <div class="progress-bar thin" style="flex:1">
+                <div class="progress-fill" style="width:${prog.pct}%"></div>
+              </div>
+              <div class="section-progress-text">${prog.done}/${prog.total} · ${prog.pct}%</div>
+            </div>
+          </div>
+        </div>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="section-body"></div>
+    `;
+
+    sectionEl.querySelector('.section-header').addEventListener('click', () => {
+      sectionEl.dataset.collapsed = sectionEl.dataset.collapsed === 'true' ? 'false' : 'true';
+    });
+
+    const body = sectionEl.querySelector('.section-body');
+    section.topics.forEach((topic, ti) => body.appendChild(renderTopic(sectionKey, ti)));
+    container.appendChild(sectionEl);
+  });
+
+  renderOverall();
+}
+
+function renderTopic(sectionKey, ti) {
+  const topic = CURRICULUM[sectionKey].topics[ti];
+  const prog = calcTopicProgress(sectionKey, ti);
+
+  const el = document.createElement('div');
+  el.className = 'topic';
+  el.dataset.collapsed = 'true';
+  el.dataset.section = sectionKey;
+  el.dataset.topic = ti;
+  el.innerHTML = `
+    <div class="topic-header">
+      <span class="topic-emoji">${topic.emoji}</span>
+      <div class="topic-name">
+        ${topic.name}
+        <span class="priority-badge priority-${topic.priority}">${topic.priority}</span>
+      </div>
+      <div class="topic-progress">
+        <div class="topic-mini-bar"><div style="width:${prog.pct}%"></div></div>
+        <span class="pct">${prog.done}/${prog.total}</span>
+      </div>
+      <span class="chevron">▾</span>
+    </div>
+    <div class="topic-body"></div>
+  `;
+  el.querySelector('.topic-header').addEventListener('click', (e) => {
+    // Don't toggle if clicking inside a subtopic or any input/button
+    if (e.target.closest('.subtopic, input, button, a, label')) return;
+    el.dataset.collapsed = el.dataset.collapsed === 'true' ? 'false' : 'true';
+  });
+
+  const body = el.querySelector('.topic-body');
+  topic.subtopics.forEach((sub, si) => body.appendChild(renderSubtopic(sectionKey, ti, si)));
+  return el;
+}
+
+function renderSubtopic(sectionKey, ti, si) {
+  const sub = CURRICULUM[sectionKey].topics[ti].subtopics[si];
+  const st = getSubtopicState(sectionKey, ti, si);
+
+  const targetStatus = !st.done ? dateStatus(st.targetDate) : 'done-color';
+  const reviseStatus = dateStatus(st.revisionDate);
+
+  const el = document.createElement('div');
+  el.className = 'subtopic' + (st.done ? ' done' : '');
+  el.dataset.section = sectionKey;
+  el.dataset.topic = ti;
+  el.dataset.sub = si;
+  el.innerHTML = `
+    <div class="subtopic-head">
+      <input type="checkbox" class="subtopic-checkbox" ${st.done ? 'checked' : ''} ${isViewingSnapshot ? 'disabled' : ''}>
+      <div class="subtopic-name">${sub.name}</div>
+      <div class="date-controls">
+        <div class="date-pill target-pill ${targetStatus}">
+          <label>🎯 Target:</label>
+          <input type="date" class="target-date-input" value="${st.targetDate || ''}" ${isViewingSnapshot ? 'disabled' : ''}>
+          <button class="btn-clear-date" title="Clear target date" style="${st.targetDate && !isViewingSnapshot ? '' : 'display:none'}">✕</button>
+        </div>
+        <div class="date-pill revise-pill ${reviseStatus}" style="${st.done ? '' : 'display:none'}">
+          <label>🔁 Revise:</label>
+          <input type="date" class="revise-date-input" value="${st.revisionDate || ''}" ${isViewingSnapshot ? 'disabled' : ''}>
+        </div>
+      </div>
+    </div>
+    <div class="problem-links">
+      ${sub.problems.map(p => `<a class="problem-link" href="${p.url}" target="_blank" rel="noopener">${p.name} ↗</a>`).join('')}
+    </div>
+  `;
+
+  const checkbox = el.querySelector('.subtopic-checkbox');
+  const targetInput = el.querySelector('.target-date-input');
+  const reviseInput = el.querySelector('.revise-date-input');
+  const clearBtn = el.querySelector('.btn-clear-date');
+
+  checkbox.addEventListener('change', () => {
+    const done = checkbox.checked;
+    const cur = getSubtopicState(sectionKey, ti, si);
+    const updates = { done };
+    if (done && !cur.revisionDate) updates.revisionDate = defaultRevisionDate();
+    setSubtopicState(sectionKey, ti, si, updates);
+    // Targeted updates only — don't rebuild DOM
+    updateSubtopicVisuals(sectionKey, ti, si);
+    updateTopicProgress(sectionKey, ti);
+    updateSectionProgress(sectionKey);
+    renderOverall();
+  });
+
+  targetInput.addEventListener('change', () => {
+    setSubtopicState(sectionKey, ti, si, { targetDate: targetInput.value || null });
+    updateSubtopicVisuals(sectionKey, ti, si);
+  });
+
+  reviseInput.addEventListener('change', () => {
+    setSubtopicState(sectionKey, ti, si, { revisionDate: reviseInput.value || null });
+    updateSubtopicVisuals(sectionKey, ti, si);
+  });
+
+  clearBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    setSubtopicState(sectionKey, ti, si, { targetDate: null });
+    updateSubtopicVisuals(sectionKey, ti, si);
+  });
+
+  return el;
+}
+
+// ============================================================================
+// TARGETED IN-PLACE UPDATES — keeps expand/collapse state intact
+// ============================================================================
+function updateSubtopicVisuals(sectionKey, ti, si) {
+  const el = document.querySelector(
+    `.subtopic[data-section="${sectionKey}"][data-topic="${ti}"][data-sub="${si}"]`
+  );
+  if (!el) return;
+  const st = getSubtopicState(sectionKey, ti, si);
+
+  // Done styling
+  el.classList.toggle('done', !!st.done);
+  el.querySelector('.subtopic-checkbox').checked = !!st.done;
+
+  // Target pill: color class + clear button visibility + input value
+  const targetPill = el.querySelector('.target-pill');
+  const targetStatus = !st.done ? dateStatus(st.targetDate) : 'done-color';
+  targetPill.className = 'date-pill target-pill ' + targetStatus;
+  const targetInput = el.querySelector('.target-date-input');
+  if (targetInput.value !== (st.targetDate || '')) targetInput.value = st.targetDate || '';
+  const clearBtn = el.querySelector('.btn-clear-date');
+  clearBtn.style.display = (st.targetDate && !isViewingSnapshot) ? '' : 'none';
+
+  // Revise pill: visibility + color + input value
+  const revisePill = el.querySelector('.revise-pill');
+  revisePill.style.display = st.done ? '' : 'none';
+  revisePill.className = 'date-pill revise-pill ' + dateStatus(st.revisionDate);
+  const reviseInput = el.querySelector('.revise-date-input');
+  if (reviseInput.value !== (st.revisionDate || '')) reviseInput.value = st.revisionDate || '';
+}
+
+function updateTopicProgress(sectionKey, ti) {
+  const prog = calcTopicProgress(sectionKey, ti);
+  const el = document.querySelector(`.topic[data-section="${sectionKey}"][data-topic="${ti}"]`);
+  if (!el) return;
+  const bar = el.querySelector('.topic-mini-bar > div');
+  const pct = el.querySelector('.topic-progress .pct');
+  if (bar) bar.style.width = prog.pct + '%';
+  if (pct) pct.textContent = `${prog.done}/${prog.total}`;
+}
+
+function updateSectionProgress(sectionKey) {
+  const prog = calcSectionProgress(sectionKey);
+  const el = document.querySelector(`.section[data-section="${sectionKey}"]`);
+  if (!el) return;
+  const fill = el.querySelector('.progress-fill');
+  const text = el.querySelector('.section-progress-text');
+  if (fill) fill.style.width = prog.pct + '%';
+  if (text) text.textContent = `${prog.done}/${prog.total} · ${prog.pct}%`;
+}
+
+// ============================================================================
+// SHARE FEATURE
+// ============================================================================
+function generateShareUrl() {
+  const encoded = btoa(encodeURIComponent(JSON.stringify(state)));
+  const baseUrl = window.location.href.split('#')[0];
+  return baseUrl + '#share=' + encoded;
+}
+
+document.getElementById('shareBtn').addEventListener('click', () => {
+  const url = generateShareUrl();
+  document.getElementById('shareUrl').value = url;
+  document.getElementById('shareModal').classList.add('open');
+});
+document.getElementById('closeShareModal').addEventListener('click', () => {
+  document.getElementById('shareModal').classList.remove('open');
+});
+document.getElementById('copyShareUrl').addEventListener('click', async () => {
+  const url = document.getElementById('shareUrl').value;
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast('Share URL copied to clipboard ✨');
+  } catch (e) {
+    document.getElementById('shareUrl').select();
+    showToast('Select-all done — press Ctrl+C to copy');
+  }
+});
+document.getElementById('shareModal').addEventListener('click', (e) => {
+  if (e.target.id === 'shareModal') document.getElementById('shareModal').classList.remove('open');
+});
+
+// ============================================================================
+// RESET
+// ============================================================================
+document.getElementById('resetBtn').addEventListener('click', () => {
+  if (confirm('Reset ALL progress? This cannot be undone.')) {
+    state = {};
+    saveState();
+    renderAll();
+    showToast('Progress reset.');
+  }
+});
+
+// ============================================================================
+// THEME
+// ============================================================================
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  document.getElementById('themeBtn').textContent = theme === 'dark' ? '☀️' : '🌙';
+  try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+}
+document.getElementById('themeBtn').addEventListener('click', () => {
+  const cur = document.documentElement.dataset.theme || 'light';
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+});
+
+function initTheme() {
+  let theme = 'light';
+  try { theme = localStorage.getItem(THEME_KEY) || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); } catch (e) {}
+  applyTheme(theme);
+}
+
+// ============================================================================
+// TOAST
+// ============================================================================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// ============================================================================
+// INIT
+// ============================================================================
+initTheme();
+loadState();
+renderAll();
+</script>
+
+</body>
+</html>
