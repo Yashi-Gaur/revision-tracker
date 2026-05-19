@@ -140,6 +140,27 @@ body {
 .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: white; }
 .btn-icon { padding: 8px; aspect-ratio: 1; }
 
+/* Sync indicator */
+.sync-indicator {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-weight: 500;
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.sync-indicator.syncing { background: var(--accent-subtle); color: var(--accent); border-color: var(--accent); }
+.sync-indicator.synced { background: var(--success-subtle); color: var(--success); border-color: var(--success); }
+.sync-indicator.error, .sync-indicator.offline { background: var(--danger-subtle); color: var(--danger); border-color: var(--danger); }
+.sync-indicator .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor;
+}
+.sync-indicator.syncing .dot { animation: pulse 1s infinite; }
+@keyframes pulse { 50% { opacity: 0.3; } }
+
 /* ============================================================
    LAYOUT
    ============================================================ */
@@ -494,6 +515,7 @@ body {
   <div class="header-inner">
     <h1>📚 Yashi's Revision Tracker <span class="viewing-badge" id="viewingBadge" style="display:none">Viewing Snapshot</span></h1>
     <div class="header-actions">
+      <span class="sync-indicator" id="syncIndicator"><span class="dot"></span><span id="syncText">Loading…</span></span>
       <button class="btn btn-icon" id="themeBtn" title="Toggle theme">🌙</button>
       <button class="btn" id="shareBtn" title="Share progress with friends">🔗 Share</button>
       <button class="btn" id="resetBtn" title="Reset all progress">↺ Reset</button>
@@ -2357,40 +2379,107 @@ const CURRICULUM = {
 };
 
 // ============================================================================
-// STATE MANAGEMENT (localStorage + URL hash share)
+// STATE MANAGEMENT (JSONBin cloud sync + localStorage fallback)
 // ============================================================================
+const JSONBIN_BIN_ID = '6a0cab446610dd3ae87035ea';
+const JSONBIN_ACCESS_KEY = '$2a$10$SucCjUWz7GIQK5pCC03pROGVeRGkTdg0bsUZRB30lA63SoqB3la66';
+const JSONBIN_API = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
+
 const STORAGE_KEY = 'yashi-revision-tracker-v1';
 const THEME_KEY = 'yashi-tracker-theme';
-let state = {}; // { sectionKey: { topicIdx: { subtopicIdx: { done: bool, revisionDate: ISOstr } } } }
+let state = {};
 let isViewingSnapshot = false;
+let isViewerMode = false;
+let lastLocalEdit = 0;
+let saveTimer = null;
 
-function loadState() {
-  // Check for shared snapshot in URL hash
-  const hash = window.location.hash;
-  if (hash.startsWith('#share=')) {
-    try {
-      const encoded = hash.slice(7);
-      const decoded = JSON.parse(decodeURIComponent(atob(encoded)));
-      state = decoded;
-      isViewingSnapshot = true;
-      document.getElementById('viewingBadge').style.display = '';
-      document.getElementById('resetBtn').style.display = 'none';
-      showToast('Viewing shared snapshot — your own progress is preserved');
-      return;
-    } catch (e) {
-      console.warn('Invalid share URL', e);
-    }
+function setSyncStatus(status, customText) {
+  const el = document.getElementById('syncIndicator');
+  const textEl = document.getElementById('syncText');
+  if (!el) return;
+  el.classList.remove('syncing', 'synced', 'error', 'offline');
+  const labels = {
+    syncing: 'Syncing…',
+    synced: 'Synced',
+    error: 'Sync error',
+    offline: 'Offline',
+    loading: 'Loading…',
+  };
+  if (status !== 'loading') el.classList.add(status);
+  textEl.textContent = customText || labels[status] || status;
+}
+
+async function loadStateFromCloud() {
+  try {
+    setSyncStatus('syncing', 'Loading…');
+    const r = await fetch(JSONBIN_API + '/latest', {
+      headers: { 'X-Access-Key': JSONBIN_ACCESS_KEY },
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    state = (data.record && data.record.state) || {};
+    setSyncStatus('synced');
+    return true;
+  } catch (e) {
+    console.warn('Cloud load failed:', e);
+    setSyncStatus('offline');
+    return false;
   }
+}
+
+function loadStateFromLocal() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) state = JSON.parse(raw);
   } catch (e) { console.warn(e); }
 }
 
+function loadFromHashShare() {
+  const hash = window.location.hash;
+  if (!hash.startsWith('#share=')) return false;
+  try {
+    const encoded = hash.slice(7);
+    state = JSON.parse(decodeURIComponent(atob(encoded)));
+    isViewingSnapshot = true;
+    document.getElementById('viewingBadge').style.display = '';
+    document.getElementById('resetBtn').style.display = 'none';
+    setSyncStatus('synced', 'Snapshot');
+    showToast('Viewing shared snapshot');
+    return true;
+  } catch (e) {
+    console.warn('Invalid share URL', e);
+    return false;
+  }
+}
+
 function saveState() {
-  if (isViewingSnapshot) return;
+  if (isViewingSnapshot || isViewerMode) return;
+  lastLocalEdit = Date.now();
+  // Always save to localStorage immediately (offline fallback)
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-  catch (e) { console.warn('Save failed:', e); }
+  catch (e) { console.warn('Local save failed:', e); }
+  // Debounced cloud save
+  setSyncStatus('syncing');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveStateToCloud, 700);
+}
+
+async function saveStateToCloud() {
+  try {
+    const r = await fetch(JSONBIN_API, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Access-Key': JSONBIN_ACCESS_KEY,
+      },
+      body: JSON.stringify({ state, lastUpdated: new Date().toISOString() }),
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    setSyncStatus('synced');
+  } catch (e) {
+    console.warn('Cloud save failed:', e);
+    setSyncStatus('error');
+  }
 }
 
 function getSubtopicState(sectionKey, topicIdx, subIdx) {
@@ -2410,6 +2499,29 @@ function defaultRevisionDate() {
   const d = new Date();
   d.setDate(d.getDate() + 3);
   return d.toISOString().split('T')[0];
+}
+
+// Capture/restore expand/collapse UI state across full re-renders
+function captureUiState() {
+  const ui = { closedSections: [], openTopics: [] };
+  document.querySelectorAll('.section[data-collapsed="true"]').forEach(el => {
+    ui.closedSections.push(el.dataset.section);
+  });
+  document.querySelectorAll('.topic[data-collapsed="false"]').forEach(el => {
+    ui.openTopics.push(`${el.dataset.section}:${el.dataset.topic}`);
+  });
+  return ui;
+}
+function restoreUiState(snap) {
+  if (!snap) return;
+  document.querySelectorAll('.section').forEach(el => {
+    if (snap.closedSections.includes(el.dataset.section)) el.dataset.collapsed = 'true';
+  });
+  document.querySelectorAll('.topic').forEach(el => {
+    if (snap.openTopics.includes(`${el.dataset.section}:${el.dataset.topic}`)) {
+      el.dataset.collapsed = 'false';
+    }
+  });
 }
 
 // ============================================================================
@@ -2737,11 +2849,68 @@ function showToast(msg) {
 }
 
 // ============================================================================
-// INIT
+// INIT (async — load cloud, optional viewer mode polling)
 // ============================================================================
-initTheme();
-loadState();
-renderAll();
+async function init() {
+  initTheme();
+
+  // Viewer mode (?view=1) — read-only, polls cloud
+  const params = new URLSearchParams(location.search);
+  if (params.get('view') === '1') {
+    isViewerMode = true;
+    document.getElementById('viewingBadge').style.display = '';
+    document.getElementById('viewingBadge').textContent = 'Live View';
+    document.getElementById('resetBtn').style.display = 'none';
+    showToast('Live view — auto-refreshes every 15s');
+  }
+
+  // Hash share takes precedence (frozen snapshot, no cloud)
+  if (loadFromHashShare()) {
+    renderAll();
+    return;
+  }
+
+  // Fast path: render from localStorage first to avoid blank flash
+  loadStateFromLocal();
+  renderAll();
+
+  // Then refresh from cloud
+  const cloudOk = await loadStateFromCloud();
+  if (cloudOk) {
+    const ui = captureUiState();
+    renderAll();
+    restoreUiState(ui);
+  }
+
+  // Refresh on tab focus (only if no recent local edit)
+  document.addEventListener('visibilitychange', async () => {
+    if (document.hidden) return;
+    if (isViewingSnapshot) return;
+    if (Date.now() - lastLocalEdit < 3000) return; // skip if we just edited
+    const before = JSON.stringify(state);
+    await loadStateFromCloud();
+    if (JSON.stringify(state) !== before) {
+      const ui = captureUiState();
+      renderAll();
+      restoreUiState(ui);
+    }
+  });
+
+  // Live polling for viewer mode
+  if (isViewerMode) {
+    setInterval(async () => {
+      const before = JSON.stringify(state);
+      await loadStateFromCloud();
+      if (JSON.stringify(state) !== before) {
+        const ui = captureUiState();
+        renderAll();
+        restoreUiState(ui);
+      }
+    }, 15000);
+  }
+}
+
+init();
 </script>
 
 </body>
