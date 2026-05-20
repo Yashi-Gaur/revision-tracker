@@ -1,0 +1,23 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Claude Code
+.claude/
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local env / secrets
+.env
+.env.local
+
+# Dependency directories
+node_modules/
+
+# Logs
+*.log
